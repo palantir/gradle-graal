@@ -17,9 +17,14 @@
 package com.palantir.gradle.graal;
 
 import java.io.File;
+import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
@@ -40,6 +45,16 @@ public class ExtractGraalTask extends DefaultTask {
             spec.args("-xzf", inputTgz.getAbsolutePath());
             spec.workingDir(GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()));
         });
+    }
+
+    @OutputDirectory
+    public final Path getOutputDirectory() {
+        return GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()).resolve("graalvm-ce-" + graalVersion.get());
+    }
+
+    @Override
+    public Spec<? super TaskInternal> getOnlyIf() {
+        return spec -> !getOutputDirectory().toFile().exists();
     }
 
     @Override
