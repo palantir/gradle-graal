@@ -1,0 +1,76 @@
+version: 2
+jobs:
+  compile:
+    docker: [{ image: 'circleci/openjdk:8-node' }]
+    resource_class: medium+
+    steps:
+      - checkout
+      - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - run: ./gradlew --profile --parallel --stacktrace resolveConfigurations
+      - save_cache:
+          key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}'
+          paths: [ ~/.gradle/wrapper ]
+      - save_cache:
+          key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}'
+          paths: [ ~/.gradle/caches ]
+      - run: ./gradlew --profile --parallel --stacktrace classes testClasses
+      - store_test_results: { path: ~/junit }
+      - store_artifacts: { path: ~/artifacts }
+      - persist_to_workspace:
+          root: .
+          paths: [ . ]
+
+  check:
+    docker: [{ image: 'circleci/openjdk:8-node' }]
+    steps:
+      - attach_workspace: { at: . }
+      - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
+      - run: ./gradlew --profile --parallel --stacktrace --continue check
+      - run:
+          command: mkdir -p ~/junit && find . -type f -regex ".*/build/.*TEST.*xml" -exec cp --parents {} ~/junit/ \;
+          when: always
+      - store_test_results: { path: ~/junit }
+      - store_artifacts: { path: ~/artifacts }
+
+  trial-publish:
+    docker: [{ image: 'circleci/openjdk:8-node' }]
+    steps:
+      - attach_workspace: { at: . }
+      - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - run: ./gradlew --profile --stacktrace publishToMavenLocal
+      - store_test_results: { path: ~/junit }
+      - store_artifacts: { path: ~/artifacts }
+
+  publish:
+    docker: [{ image: 'circleci/openjdk:8-node' }]
+    steps:
+      - attach_workspace: { at: . }
+      - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - deploy:
+          command: ./gradlew --profile --parallel --stacktrace --continue publish
+      - store_test_results: { path: ~/junit }
+      - store_artifacts: { path: ~/artifacts }
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - compile:
+          filters: { tags: { only: /.*/ } }
+
+      - check:
+          requires: [ compile ]
+          filters: { tags: { only: /.*/ } }
+
+      - trial-publish:
+          requires: [ compile ]
+
+      - publish:
+          requires: [ check ]
+          filters: { tags: { only: /.*/ }, branches: { only: develop } }
+

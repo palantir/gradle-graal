@@ -1,0 +1,103 @@
+/*
+ * (c) Copyright 2018 Palantir Technologies Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+buildscript {
+    repositories {
+        jcenter()
+        gradlePluginPortal()
+        maven { url  "http://palantir.bintray.com/releases" }
+    }
+
+    dependencies {
+        classpath 'com.gradle.publish:plugin-publish-plugin:0.10.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
+        classpath 'com.netflix.nebula:nebula-dependency-recommender:6.0.0'
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:0.26.1'
+        classpath 'com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.3.0'
+        classpath 'gradle.plugin.com.palantir.gradle.gitversion:gradle-git-version:0.7.3'
+        classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.2'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.16'
+    }
+}
+
+
+repositories {
+    jcenter()
+    gradlePluginPortal()
+    maven { url  "http://palantir.bintray.com/releases" }
+}
+
+apply plugin: 'com.palantir.baseline'
+apply plugin: 'com.palantir.configuration-resolver'
+apply plugin: 'com.palantir.git-version'
+apply plugin: 'nebula.dependency-recommender'
+apply plugin: 'nebula.maven-publish'
+apply plugin: 'nebula.source-jar'
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'groovy'
+apply plugin: 'org.inferred.processors'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'com.palantir.circle.style'
+
+group 'com.palantir.graal'
+version gitVersion()
+
+dependencies {
+    compile localGroovy()
+    compile gradleApi()
+
+    testCompile gradleTestKit()
+    testCompile 'com.netflix.nebula:nebula-test'
+
+    baseline 'com.palantir.baseline:gradle-baseline-java-config:0.26.1@zip'
+}
+
+dependencyRecommendations {
+    strategy OverrideTransitives
+    propertiesFile file: project.rootProject.file('versions.props')
+}
+
+configurations.all {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
+}
+
+configurations.errorprone {
+    resolutionStrategy {
+        force 'com.google.guava:guava:21.0'
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs += [
+        '-Xep:Slf4jLogsafeArgs:OFF',
+    ]
+}
+
+gradlePlugin {
+    // do not add new task to publish to plugins.gradle.org
+    automatedPublishing = false
+    
+    plugins {
+        graal {
+            id = 'com.palantir.graal'
+            implementationClass = 'com.palantir.gradle.graal.GradleGraalPlugin'
+        }
+    }
+}
