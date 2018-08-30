@@ -19,7 +19,6 @@ package com.palantir.gradle.graal;
 import java.io.File;
 import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -53,7 +52,7 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     @Override
-    public Spec<? super TaskInternal> getOnlyIf() {
+    public final Spec<? super TaskInternal> getOnlyIf() {
         return spec -> !getOutputDirectory().toFile().exists();
     }
 
