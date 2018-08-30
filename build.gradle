@@ -41,6 +41,7 @@ repositories {
     maven { url  "http://palantir.bintray.com/releases" }
 }
 
+apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.configuration-resolver'
 apply plugin: 'com.palantir.git-version'
