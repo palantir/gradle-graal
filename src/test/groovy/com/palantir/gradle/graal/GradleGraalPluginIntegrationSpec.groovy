@@ -20,7 +20,7 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
-    def 'example test running a task'() {
+    def 'test explicit version nativeImage'() {
         setup:
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
@@ -36,11 +36,11 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         buildFile << '''
             apply plugin: 'java'
             apply plugin: 'com.palantir.graal'
-            
+
             graal {
-               graalVersion '1.0.0-rc6'
-               mainClass "com.palantir.test.Main"
-               outputName "hello-world"
+               graalVersion '1.0.0-rc5'
+               mainClass 'com.palantir.test.Main'
+               outputName 'hello-world'
             }
         '''
 
@@ -55,4 +55,40 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         output.exists()
         output.getAbsolutePath().execute().text.equals("hello, world!\n")
     }
+
+    def 'test latest version nativeImage'() {
+        setup:
+        new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
+        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
+            package com.palantir.test;
+
+            public final class Main {
+                public static final void main(String[] args) {
+                    System.out.println("hello, world!");
+                }
+            }
+        '''
+
+        buildFile << '''
+            apply plugin: 'java'
+            apply plugin: 'com.palantir.graal'
+
+            graal {
+               mainClass 'com.palantir.test.Main'
+               outputName 'hello-world'
+            }
+        '''
+
+        when:
+        ExecutionResult result = runTasks('nativeImage')
+        // capture output from Gradle runs
+        println result.standardOutput
+        File output = new File(getProjectDir(), "build/graal/hello-world");
+
+        then:
+        result.success
+        output.exists()
+        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+    }
+
 }
