@@ -48,6 +48,7 @@ public class NativeImageTask extends DefaultTask {
             }
 
             List<String> args = new ArrayList<>();
+            args.add("--no-server");
             args.add("--verbose");
             args.add("-cp");
             args.add(generateClasspathArgument());
