@@ -21,6 +21,7 @@ jobs:
 
   check:
     docker: [{ image: 'circleci/openjdk:8-node' }]
+    resource_class: medium+
     steps:
       - attach_workspace: { at: . }
       - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
