@@ -15,8 +15,6 @@ jobs:
           key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}'
           paths: [ ~/.gradle/caches ]
       - run: ./gradlew --profile --parallel --stacktrace classes testClasses
-      - store_test_results: { path: ~/junit }
-      - store_artifacts: { path: ~/artifacts }
       - persist_to_workspace:
           root: .
           paths: [ . ]
@@ -32,8 +30,8 @@ jobs:
       - run:
           command: mkdir -p ~/junit && find . -type f -regex ".*/build/.*TEST.*xml" -exec cp --parents {} ~/junit/ \;
           when: always
-      - store_test_results: { path: ~/junit }
-      - store_artifacts: { path: ~/artifacts }
+      - store_test_results: { path: build/test-results }
+      - store_artifacts: { path: build/reports/tests }
 
   trial-publish:
     docker: [{ image: 'circleci/openjdk:8-node' }]
@@ -42,8 +40,6 @@ jobs:
       - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - run: ./gradlew --profile --stacktrace publishToMavenLocal
-      - store_test_results: { path: ~/junit }
-      - store_artifacts: { path: ~/artifacts }
 
   publish:
     docker: [{ image: 'circleci/openjdk:8-node' }]
@@ -55,8 +51,6 @@ jobs:
           command: ./gradlew --profile --parallel --stacktrace --continue publish
       - deploy:
           command: ./gradlew --profile --parallel --stacktrace -Pgradle.publish.key=$GRADLE_PUBLISH_KEY -Pgradle.publish.secret=$GRADLE_PUBLISH_SECRET publishPlugins
-      - store_test_results: { path: ~/junit }
-      - store_artifacts: { path: ~/artifacts }
 
 workflows:
   version: 2
