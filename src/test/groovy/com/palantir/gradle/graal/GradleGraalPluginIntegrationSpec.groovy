@@ -48,6 +48,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         ExecutionResult result = runTasks('nativeImage')
         // capture output from Gradle runs
         println result.standardOutput
+        println result.standardError
         File output = new File(getProjectDir(), "build/graal/hello-world");
 
         then:
@@ -83,6 +84,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         ExecutionResult result = runTasks('nativeImage')
         // capture output from Gradle runs
         println result.standardOutput
+        println result.standardError
         File output = new File(getProjectDir(), "build/graal/hello-world");
 
         then:
