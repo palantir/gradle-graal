@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskAction;
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
 
-    @Input private File inputTgz;
+    @Input private Provider<File> inputTgz;
     @Input private Provider<String> graalVersion;
 
     @TaskAction
@@ -41,7 +41,7 @@ public class ExtractGraalTask extends DefaultTask {
         // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
         getProject().exec(spec -> {
             spec.executable("tar");
-            spec.args("-xzf", inputTgz.getAbsolutePath());
+            spec.args("-xzf", inputTgz.get().getAbsolutePath());
             spec.workingDir(GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()));
         });
     }
@@ -67,7 +67,7 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(File inputTgz, Provider<String> graalVersion) {
+    public final void configure(Provider<File> inputTgz, Provider<String> graalVersion) {
         this.inputTgz = inputTgz;
         this.graalVersion = graalVersion;
     }

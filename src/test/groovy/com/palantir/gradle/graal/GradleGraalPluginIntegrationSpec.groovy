@@ -38,6 +38,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.graal'
             
             graal {
+               graalVersion '1.0.0-rc6'
                mainClass "com.palantir.test.Main"
                outputName "hello-world"
             }
