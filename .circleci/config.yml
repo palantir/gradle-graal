@@ -25,8 +25,12 @@ jobs:
       - attach_workspace: { at: . }
       - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - restore_cache: { key: 'graal-cache' }
       - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
       - run: ./gradlew --profile --parallel --stacktrace --continue check
+      - save_cache:
+          key: 'graal-cache'
+          paths: [ ~/.gradle/caches/com.palantir.graal ]
       - store_test_results: { path: build/test-results }
       - store_artifacts: { path: build/reports/tests }
 
