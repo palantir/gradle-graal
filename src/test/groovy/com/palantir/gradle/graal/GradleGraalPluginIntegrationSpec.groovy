@@ -20,7 +20,7 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
-    def 'test latest version nativeImage'() {
+    def 'test default version nativeImage'() {
         setup:
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
