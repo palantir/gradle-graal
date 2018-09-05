@@ -27,9 +27,6 @@ jobs:
       - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
       - run: ./gradlew --profile --parallel --stacktrace --continue check
-      - run:
-          command: mkdir -p ~/junit && find . -type f -regex ".*/build/.*TEST.*xml" -exec cp --parents {} ~/junit/ \;
-          when: always
       - store_test_results: { path: build/test-results }
       - store_artifacts: { path: build/reports/tests }
 
