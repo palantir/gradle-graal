@@ -18,12 +18,9 @@ package com.palantir.gradle.graal;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.function.Supplier;
-import javax.annotation.Nullable;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Transformer;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.internal.provider.DefaultProvider;
 
 /**
  * Adds tasks to download, extract and interact with GraalVM tooling.
@@ -62,7 +59,9 @@ public class GradleGraalPlugin implements Plugin<Project> {
         ExtractGraalTask extractGraal = project.getTasks().create(
                 "extractGraalTooling", ExtractGraalTask.class, task -> {
                     task.dependsOn(downloadGraal);
-                    task.configure(asProvider(() -> downloadGraal.getOutput().toFile()), extension.getGraalVersion());
+                    task.configure(
+                            new DefaultProvider<>(() -> downloadGraal.getOutput().toFile()),
+                            extension.getGraalVersion());
                 });
 
         project.getTasks().create("nativeImage", NativeImageTask.class, task -> {
@@ -70,35 +69,5 @@ public class GradleGraalPlugin implements Plugin<Project> {
             task.dependsOn("jar");
             task.configure(extension.getMainClass(), extension.getOutputName(), extension.getGraalVersion());
         });
-    }
-
-    private static <T> Provider<T> asProvider(Supplier<T> supplier) {
-        return new Provider<T>() {
-            @Override
-            public T get() {
-                return supplier.get();
-            }
-
-            @Nullable
-            @Override
-            public T getOrNull() {
-                return supplier.get();
-            }
-
-            @Override
-            public T getOrElse(T other) {
-                return supplier.get();
-            }
-
-            @Override
-            public <S> Provider<S> map(Transformer<? extends S, ? super T> transformer) {
-                return asProvider(() -> transformer.transform(get()));
-            }
-
-            @Override
-            public boolean isPresent() {
-                return true;
-            }
-        };
     }
 }
