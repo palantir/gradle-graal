@@ -19,18 +19,41 @@ package com.palantir.gradle.graal;
 import java.io.File;
 import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
 
-    @Input private Provider<File> inputTgz;
-    @Input private Provider<String> graalVersion;
+    private final Property<File> inputTgz = getProject().getObjects().property(File.class);
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+
+    public ExtractGraalTask() {
+        onlyIf(task -> !getOutputDirectory().toFile().exists());
+        setGroup(GradleGraalPlugin.TASK_GROUP);
+        setDescription("Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.");
+    }
+
+    @InputFile
+    public Provider<File> getInputTgz() {
+        return inputTgz;
+    }
+
+    public void setInputTgz(Provider<File> value) {
+        this.inputTgz.set(value);
+    }
+
+    @InputFile
+    public Provider<String> getGraalVersion() {
+        return graalVersion;
+    }
+
+    public void setGraalVersion(Provider<String> value) {
+        this.graalVersion.set(value);
+    }
 
     @TaskAction
     public final void extractGraal() {
@@ -49,26 +72,5 @@ public class ExtractGraalTask extends DefaultTask {
     @OutputDirectory
     public final Path getOutputDirectory() {
         return GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()).resolve("graalvm-ce-" + graalVersion.get());
-    }
-
-    @Override
-    public final Spec<? super TaskInternal> getOnlyIf() {
-        return spec -> !getOutputDirectory().toFile().exists();
-    }
-
-    @Override
-    public final String getGroup() {
-        return GradleGraalPlugin.TASK_GROUP;
-    }
-
-    @Override
-    public final String getDescription() {
-        return "Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.";
-    }
-
-    @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(Provider<File> inputTgz, Provider<String> graalVersion) {
-        this.inputTgz = inputTgz;
-        this.graalVersion = graalVersion;
     }
 }

@@ -40,31 +40,27 @@ public class DownloadGraalTask extends DefaultTask {
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
 
     public DownloadGraalTask() {
-        onlyIf(task -> !getOutput().exists());
+        onlyIf(task -> !getTgz().get().exists());
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
     }
 
     @TaskAction
     public final void downloadGraal() throws IOException {
-        Path cache = getCache();
+        Path cache = getCache().get();
         Files.createDirectories(cache);
         InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream();
-        Files.copy(in, getOutput().toPath(), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(in, getTgz().get().toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @OutputFile
-    public final File getOutput() {
-        return getCache().resolve(render(FILENAME_PATTERN)).toFile();
+    public final Provider<File> getTgz() {
+        return getCache().map(cacheDir -> cacheDir.resolve(render(FILENAME_PATTERN)).toFile());
     }
 
     @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
-    }
-
-    public final void setGraalVersion(String value) {
-        graalVersion.set(value);
     }
 
     public final void setGraalVersion(Provider<String> value) {
@@ -76,16 +72,12 @@ public class DownloadGraalTask extends DefaultTask {
         return downloadBaseUrl;
     }
 
-    public final void setDownloadBaseUrl(String value) {
-        downloadBaseUrl.set(value);
-    }
-
     public final void setDownloadBaseUrl(Provider<String> value) {
         downloadBaseUrl.set(value);
     }
 
-    private Path getCache() {
-        return GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get());
+    private Provider<Path> getCache() {
+        return graalVersion.map(version -> GradleGraalPlugin.CACHE_DIR.resolve(version));
     }
 
     private String render(String pattern) {
