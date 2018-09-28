@@ -17,12 +17,16 @@
 package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
-import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.ClassRule
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
+
+    @Rule
+    TemporaryFolder folder = new TemporaryFolder();
 
     @ClassRule
     static MockWebServer server = new MockWebServer()
@@ -76,20 +80,18 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.graal'
 
             graal {
-               mainClass 'com.palantir.test.Main'
-               outputName 'hello-world'
                graalVersion '1.0.0-rc5'
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody("<<tgz>>"));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
-        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
+        runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
 
         then:
-        result1.wasExecuted(':downloadGraalTooling')
-        result2.wasExecuted(':downloadGraalTooling')
+        new File(folder.getRoot(), ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
+        server.takeRequest().requestUrl.toString() == "http://localhost:${server.port}" +
+                "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-macos-amd64.tar.gz"
     }
 }
