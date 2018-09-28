@@ -17,6 +17,7 @@
 package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
+import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.ClassRule
@@ -68,7 +69,6 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 //        File output = new File(getProjectDir(), "build/graal/hello-world");
 //
 //        then:
-//        result.success
 //        output.exists()
 //        output.getAbsolutePath().execute().text.equals("hello, world!\n")
 //    }
@@ -90,8 +90,31 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
 
         then:
-        new File(folder.getRoot(), ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
+        new File(folder.getRoot(),
+                ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
         server.takeRequest().requestUrl.toString() == "http://localhost:${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-macos-amd64.tar.gz"
+    }
+
+    def 'downloadGraalTooling behaves incrementally'() {
+        setup:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'com.palantir.graal'
+
+            graal {
+               graalVersion '1.0.0-rc5'
+               downloadBaseUrl '${fakeBaseUrl}'
+            }
+        """
+        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+
+        when:
+        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
+        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
+
+        then:
+        result1.wasUpToDate(':downloadGraalTooling') == false
+        result2.wasUpToDate(':downloadGraalTooling') == true
     }
 }
