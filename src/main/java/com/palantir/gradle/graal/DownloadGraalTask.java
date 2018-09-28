@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -23,9 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -36,46 +36,52 @@ public class DownloadGraalTask extends DefaultTask {
     private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
 
-    @Input private Provider<String> graalVersion;
-    @Input private Provider<String> downloadBaseUrl;
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
+
+    public DownloadGraalTask() {
+        onlyIf(task -> !getOutput().exists());
+        setGroup(GradleGraalPlugin.TASK_GROUP);
+        setDescription("Downloads and caches GraalVM binaries.");
+    }
 
     @TaskAction
     public final void downloadGraal() throws IOException {
         Path cache = getCache();
-        if (!(cache.toFile().mkdirs() || cache.toFile().exists())) {
-            throw new IllegalStateException(
-                    "Unable to make cache directory, and the cache directory does not already exist: " + cache);
-        }
-
+        Files.createDirectories(cache);
         InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream();
-        Files.copy(in, getOutput(), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    @Override
-    public final String getGroup() {
-        return GradleGraalPlugin.TASK_GROUP;
-    }
-
-    @Override
-    public final String getDescription() {
-        return "Downloads and caches GraalVM binaries.";
+        Files.copy(in, getOutput().toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
     @OutputFile
-    public final Path getOutput() {
-        return getCache().resolve(render(FILENAME_PATTERN));
+    public final File getOutput() {
+        return getCache().resolve(render(FILENAME_PATTERN)).toFile();
     }
 
-    /** Returns a lambda that prevents this task from running if the download target already exists in the cache. */
-    @Override
-    public final Spec<? super TaskInternal> getOnlyIf() {
-        return spec -> !getOutput().toFile().exists();
+    @Input
+    public final Provider<String> getGraalVersion() {
+        return graalVersion;
     }
 
-    @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(Provider<String> graalVersion, Provider<String> downloadBaseUrl) {
-        this.graalVersion = graalVersion;
-        this.downloadBaseUrl = downloadBaseUrl;
+    public final void setGraalVersion(String value) {
+        graalVersion.set(value);
+    }
+
+    public final void setGraalVersion(Provider<String> value) {
+        graalVersion.set(value);
+    }
+
+    @Input
+    public final Provider<String> getDownloadBaseUrl() {
+        return downloadBaseUrl;
+    }
+
+    public final void setDownloadBaseUrl(String value) {
+        downloadBaseUrl.set(value);
+    }
+
+    public final void setDownloadBaseUrl(Provider<String> value) {
+        downloadBaseUrl.set(value);
     }
 
     private Path getCache() {
