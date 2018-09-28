@@ -26,10 +26,10 @@ public class GraalExtension {
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "1.0.0-rc6";
 
-    private Property<String> downloadBaseUrl;
-    private Property<String> graalVersion;
-    private Property<String> mainClass;
-    private Property<String> outputName;
+    private final Property<String> downloadBaseUrl;
+    private final Property<String> graalVersion;
+    private final Property<String> mainClass;
+    private final Property<String> outputName;
 
     public GraalExtension(Project project) {
         downloadBaseUrl = project.getObjects().property(String.class);
