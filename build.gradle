@@ -65,6 +65,7 @@ dependencies {
 
     testCompile gradleTestKit()
     testCompile 'com.netflix.nebula:nebula-test'
+    testCompile 'com.squareup.okhttp3:mockwebserver'
 
     baseline 'com.palantir.baseline:gradle-baseline-java-config:0.26.1@zip'
 }
@@ -95,7 +96,7 @@ tasks.withType(JavaCompile) {
 gradlePlugin {
     // do not add new task to publish to plugins.gradle.org
     automatedPublishing = false
-    
+
     plugins {
         graal {
             id = 'com.palantir.graal'

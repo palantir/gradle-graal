@@ -1,1 +1,2 @@
 com.netflix.nebula:nebula-test = 6.7.1
+com.squareup.okhttp3:* = 3.11.0

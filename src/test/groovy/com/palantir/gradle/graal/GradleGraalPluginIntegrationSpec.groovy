@@ -18,10 +18,21 @@ package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.ClassRule
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
-    def 'test default version nativeImage'() {
-        setup:
+
+    @ClassRule
+    static MockWebServer server = new MockWebServer()
+    static String fakeBaseUrl
+
+    def setupSpec() {
+        fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
+    }
+
+    def setup() {
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
             package com.palantir.test;
@@ -32,27 +43,53 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 }
             }
         '''
+    }
 
-        buildFile << '''
+//    def 'test default version nativeImage'() {
+//        setup:
+//        buildFile << '''
+//            apply plugin: 'java'
+//            apply plugin: 'com.palantir.graal'
+//
+//            graal {
+//               mainClass 'com.palantir.test.Main'
+//               outputName 'hello-world'
+//            }
+//        '''
+//
+//        when:
+//        ExecutionResult result = runTasksSuccessfully('nativeImage')
+//        println "Gradle Standard Out:\n" + result.standardOutput
+//        println "Gradle Standard Error:\n" + result.standardError
+//        File output = new File(getProjectDir(), "build/graal/hello-world");
+//
+//        then:
+//        result.success
+//        output.exists()
+//        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+//    }
+
+    def 'allows specifying different graal version'() {
+        setup:
+        buildFile << """
             apply plugin: 'java'
             apply plugin: 'com.palantir.graal'
 
             graal {
                mainClass 'com.palantir.test.Main'
                outputName 'hello-world'
+               graalVersion '1.0.0-rc5'
+               downloadBaseUrl '${fakeBaseUrl}'
             }
-        '''
+        """
+        server.enqueue(new MockResponse().setBody("<<tgz>>"));
 
         when:
-        ExecutionResult result = runTasks('nativeImage')
-        // capture output from Gradle runs
-        println "Gradle Standard Out:\n" + result.standardOutput
-        println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
+        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
 
         then:
-        result.success
-        output.exists()
-        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+        result1.wasExecuted(':downloadGraalTooling')
+        result2.wasExecuted(':downloadGraalTooling')
     }
 }
