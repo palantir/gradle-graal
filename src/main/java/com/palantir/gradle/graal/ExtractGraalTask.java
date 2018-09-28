@@ -38,20 +38,20 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     @InputFile
-    public Provider<File> getInputTgz() {
+    public final Provider<File> getInputTgz() {
         return inputTgz;
     }
 
-    public void setInputTgz(Provider<File> value) {
+    public final void setInputTgz(Provider<File> value) {
         this.inputTgz.set(value);
     }
 
     @InputFile
-    public Provider<String> getGraalVersion() {
+    public final Provider<String> getGraalVersion() {
         return graalVersion;
     }
 
-    public void setGraalVersion(Provider<String> value) {
+    public final void setGraalVersion(Provider<String> value) {
         this.graalVersion.set(value);
     }
 

@@ -109,29 +109,29 @@ public class NativeImageTask extends DefaultTask {
     }
 
     @Input
-    public Provider<String> getMainClass() {
+    public final Provider<String> getMainClass() {
         return mainClass;
     }
 
-    public void setMainClass(Provider<String> value) {
+    public final void setMainClass(Provider<String> value) {
         this.mainClass.set(value);
     }
 
     @Input
-    public Provider<String> getOutputName() {
+    public final Provider<String> getOutputName() {
         return outputName;
     }
 
-    public void setOutputName(Provider<String> value) {
+    public final void setOutputName(Provider<String> value) {
         this.outputName.set(value);
     }
 
     @Input
-    public Provider<String> getGraalVersion() {
+    public final Provider<String> getGraalVersion() {
         return graalVersion;
     }
 
-    public void setGraalVersion(Provider<String> value) {
+    public final void setGraalVersion(Provider<String> value) {
         this.graalVersion.set(value);
     }
 }
