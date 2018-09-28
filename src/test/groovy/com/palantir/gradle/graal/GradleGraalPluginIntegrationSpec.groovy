@@ -92,8 +92,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         then:
         new File(folder.getRoot(),
                 ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
-        server.takeRequest().requestUrl.toString() == "http://localhost:${server.port}" +
-                "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-macos-amd64.tar.gz"
+        server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
+                "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-(macos|linux)-amd64.tar.gz"
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
