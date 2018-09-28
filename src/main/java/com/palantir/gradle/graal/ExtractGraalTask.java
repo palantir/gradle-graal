@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
@@ -46,7 +47,7 @@ public class ExtractGraalTask extends DefaultTask {
         this.inputTgz.set(value);
     }
 
-    @InputFile
+    @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
     }

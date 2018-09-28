@@ -40,7 +40,7 @@ public class DownloadGraalTask extends DefaultTask {
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
 
     public DownloadGraalTask() {
-        getOutputs().upToDateWhen(task -> getTgz().get().exists());
+        onlyIf(task -> !getTgz().get().exists());
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
     }

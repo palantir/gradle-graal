@@ -20,24 +20,18 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
-import org.junit.ClassRule
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
-    @Rule
-    TemporaryFolder folder = new TemporaryFolder();
+    @Rule TemporaryFolder folder = new TemporaryFolder()
+    @Rule MockWebServer server = new MockWebServer()
 
-    @ClassRule
-    static MockWebServer server = new MockWebServer()
-    static String fakeBaseUrl
-
-    def setupSpec() {
-        fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
-    }
+    String fakeBaseUrl
 
     def setup() {
+        fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
             package com.palantir.test;
@@ -49,29 +43,6 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             }
         '''
     }
-
-//    def 'test default version nativeImage'() {
-//        setup:
-//        buildFile << '''
-//            apply plugin: 'java'
-//            apply plugin: 'com.palantir.graal'
-//
-//            graal {
-//               mainClass 'com.palantir.test.Main'
-//               outputName 'hello-world'
-//            }
-//        '''
-//
-//        when:
-//        ExecutionResult result = runTasksSuccessfully('nativeImage')
-//        println "Gradle Standard Out:\n" + result.standardOutput
-//        println "Gradle Standard Error:\n" + result.standardError
-//        File output = new File(getProjectDir(), "build/graal/hello-world");
-//
-//        then:
-//        output.exists()
-//        output.getAbsolutePath().execute().text.equals("hello, world!\n")
-//    }
 
     def 'allows specifying different graal version'() {
         setup:
@@ -90,6 +61,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
 
         then:
+        println folder.getRoot()
         new File(folder.getRoot(),
                 ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
         server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
@@ -103,18 +75,19 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.graal'
 
             graal {
-               graalVersion '1.0.0-rc5'
+               graalVersion '1.0.0-rc1'
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
         server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
+        println folder.getRoot()
         ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
         ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
 
         then:
-        result1.wasUpToDate(':downloadGraalTooling') == false
-        result2.wasUpToDate(':downloadGraalTooling') == true
+        result1.wasSkipped(':downloadGraalTooling') == false
+        result2.wasSkipped(':downloadGraalTooling') == true
     }
 }
