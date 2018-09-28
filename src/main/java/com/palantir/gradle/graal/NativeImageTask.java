@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
@@ -32,9 +33,14 @@ import org.gradle.api.tasks.TaskAction;
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
 
-    @Input private Provider<String> mainClass;
-    @Input private Provider<String> outputName;
-    @Input private Provider<String> graalVersion;
+    private final Property<String> mainClass = getProject().getObjects().property(String.class);
+    private final Property<String> outputName = getProject().getObjects().property(String.class);
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+
+    public NativeImageTask() {
+        setGroup(GradleGraalPlugin.TASK_GROUP);
+        setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+    }
 
     @TaskAction
     public final void nativeImage() {
@@ -62,16 +68,6 @@ public class NativeImageTask extends DefaultTask {
             spec.executable(getExecutable(graalVersion.get()));
             spec.args(args);
         });
-    }
-
-    @Override
-    public final String getGroup() {
-        return GradleGraalPlugin.TASK_GROUP;
-    }
-
-    @Override
-    public final String getDescription() {
-        return "Runs GraalVM's native-image command with configured options and parameters.";
     }
 
     private String getOutputDirectory() {
@@ -103,14 +99,6 @@ public class NativeImageTask extends DefaultTask {
                 .collect(Collectors.joining(":"));
     }
 
-    @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(Provider<String> mainClass, Provider<String> outputName,
-            Provider<String> graalVersion) {
-        this.mainClass = mainClass;
-        this.outputName = outputName;
-        this.graalVersion = graalVersion;
-    }
-
     private Path getArchitectureSpecifiedBinaryPath() {
         switch (Platform.operatingSystem()) {
             case MAC: return Paths.get("Contents", "Home", "bin", "native-image");
@@ -120,4 +108,30 @@ public class NativeImageTask extends DefaultTask {
         }
     }
 
+    @Input
+    public Provider<String> getMainClass() {
+        return mainClass;
+    }
+
+    public void setMainClass(Provider<String> value) {
+        this.mainClass.set(value);
+    }
+
+    @Input
+    public Provider<String> getOutputName() {
+        return outputName;
+    }
+
+    public void setOutputName(Provider<String> value) {
+        this.outputName.set(value);
+    }
+
+    @Input
+    public Provider<String> getGraalVersion() {
+        return graalVersion;
+    }
+
+    public void setGraalVersion(Provider<String> value) {
+        this.graalVersion.set(value);
+    }
 }
