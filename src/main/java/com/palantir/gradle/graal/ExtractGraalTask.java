@@ -18,6 +18,7 @@ package com.palantir.gradle.graal;
 
 import java.io.File;
 import java.nio.file.Path;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -30,12 +31,15 @@ import org.gradle.api.tasks.TaskAction;
 public class ExtractGraalTask extends DefaultTask {
 
     private final Property<File> inputTgz = getProject().getObjects().property(File.class);
-    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Provider<String> graalVersion;
 
-    public ExtractGraalTask() {
+    @Inject
+    public ExtractGraalTask(GraalExtension extension) {
         onlyIf(task -> !getOutputDirectory().toFile().exists());
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.");
+
+        graalVersion = extension.getGraalVersion();
     }
 
     @InputFile
@@ -50,10 +54,6 @@ public class ExtractGraalTask extends DefaultTask {
     @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
-    }
-
-    public final void setGraalVersion(Provider<String> value) {
-        this.graalVersion.set(value);
     }
 
     @TaskAction

@@ -20,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.tasks.TaskProvider;
 
 /**
  * Adds tasks to download, extract and interact with GraalVM tooling.
@@ -50,26 +51,21 @@ public class GradleGraalPlugin implements Plugin<Project> {
     public final void apply(Project project) {
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
-        DownloadGraalTask downloadGraal = project.getTasks().create("downloadGraalTooling", DownloadGraalTask.class,
-                task -> {
-                    task.setDownloadBaseUrl(extension.getDownloadBaseUrl());
-                    task.setGraalVersion(extension.getGraalVersion());
-                });
+        TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks().register(
+                "downloadGraalTooling", DownloadGraalTask.class, extension);
 
-        ExtractGraalTask extractGraal = project.getTasks().create("extractGraalTooling", ExtractGraalTask.class,
-                task -> {
-                    task.dependsOn(downloadGraal);
-                    task.setGraalVersion(extension.getGraalVersion());
-                    task.setInputTgz(downloadGraal.getTgz());
-                });
+        TaskProvider<ExtractGraalTask> extractGraal = project.getTasks().register(
+                "extractGraalTooling", ExtractGraalTask.class, extension);
+        extractGraal.configure(task -> {
+            task.dependsOn(downloadGraal);
+            task.setInputTgz(downloadGraal.get().getTgz());
+        });
 
-        project.getTasks().register("nativeImage", NativeImageTask.class,
-                task -> {
-                    task.dependsOn(extractGraal);
-                    task.dependsOn("jar");
-                    task.setGraalVersion(extension.getGraalVersion());
-                    task.setMainClass(extension.getMainClass());
-                    task.setOutputName(extension.getOutputName());
-                });
+        TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
+                "nativeImage", NativeImageTask.class, extension);
+        nativeImage.configure(task -> {
+            task.dependsOn(extractGraal);
+            task.dependsOn("jar");
+        });
     }
 }

@@ -24,8 +24,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
@@ -33,13 +33,18 @@ import org.gradle.api.tasks.TaskAction;
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
 
-    private final Property<String> mainClass = getProject().getObjects().property(String.class);
-    private final Property<String> outputName = getProject().getObjects().property(String.class);
-    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Provider<String> mainClass;
+    private final Provider<String> outputName;
+    private final Provider<String> graalVersion;
 
-    public NativeImageTask() {
+    @Inject
+    public NativeImageTask(GraalExtension extension) {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+
+        mainClass = extension.getMainClass();
+        outputName = extension.getOutputName();
+        graalVersion = extension.getGraalVersion();
     }
 
     @TaskAction
@@ -113,25 +118,13 @@ public class NativeImageTask extends DefaultTask {
         return mainClass;
     }
 
-    public final void setMainClass(Provider<String> value) {
-        this.mainClass.set(value);
-    }
-
     @Input
     public final Provider<String> getOutputName() {
         return outputName;
     }
 
-    public final void setOutputName(Provider<String> value) {
-        this.outputName.set(value);
-    }
-
     @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
-    }
-
-    public final void setGraalVersion(Provider<String> value) {
-        this.graalVersion.set(value);
     }
 }

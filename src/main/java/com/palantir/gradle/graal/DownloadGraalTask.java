@@ -23,8 +23,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -36,13 +36,17 @@ public class DownloadGraalTask extends DefaultTask {
     private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
 
-    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
-    private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
+    private final Provider<String> graalVersion;
+    private final Provider<String> downloadBaseUrl;
 
-    public DownloadGraalTask() {
+    @Inject
+    public DownloadGraalTask(GraalExtension extension) {
         onlyIf(task -> !getTgz().get().exists());
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
+
+        graalVersion = extension.getGraalVersion();
+        downloadBaseUrl = extension.getDownloadBaseUrl();
     }
 
     @TaskAction
@@ -63,17 +67,9 @@ public class DownloadGraalTask extends DefaultTask {
         return graalVersion;
     }
 
-    public final void setGraalVersion(Provider<String> value) {
-        graalVersion.set(value);
-    }
-
     @Input
     public final Provider<String> getDownloadBaseUrl() {
         return downloadBaseUrl;
-    }
-
-    public final void setDownloadBaseUrl(Provider<String> value) {
-        downloadBaseUrl.set(value);
     }
 
     private Provider<Path> getCache() {

@@ -86,7 +86,7 @@ public class GraalExtension {
      *
      * <p>Defaults to {@link #DEFAULT_GRAAL_VERSION}</p>
      */
-    public final Property<String> getGraalVersion() {
+    public final Provider<String> getGraalVersion() {
         return graalVersion;
     }
 
