@@ -47,7 +47,6 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
     def 'allows specifying different graal version'() {
         setup:
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'com.palantir.graal'
 
             graal {
@@ -71,7 +70,6 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
     def 'downloadGraalTooling behaves incrementally'() {
         setup:
         buildFile << """
-            apply plugin: 'java'
             apply plugin: 'com.palantir.graal'
 
             graal {

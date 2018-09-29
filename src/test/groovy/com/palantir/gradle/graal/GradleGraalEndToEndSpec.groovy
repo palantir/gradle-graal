@@ -25,8 +25,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         setup:
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
-            package com.palantir.test;
-
+        package com.palantir.test;
+        
         public final class Main {
             public static final void main(String[] args) {
                 System.out.println("hello, world!");
@@ -35,7 +35,6 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         '''
 
         buildFile << '''
-        apply plugin: 'java'
         apply plugin: 'com.palantir.graal'
 
         graal {
@@ -53,5 +52,28 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         output.exists()
         output.getAbsolutePath().execute().text.equals("hello, world!\n")
+
+        when:
+        ExecutionResult result2 = runTasksSuccessfully('nativeImage')
+
+        then:
+        result2.wasUpToDate(':nativeImage')
+
+        when:
+        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java").text = '''
+        package com.palantir.test;
+        
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world (modified)!");
+            }
+        }
+        '''
+        ExecutionResult result3 = runTasksSuccessfully('nativeImage')
+
+        then:
+        println result3.standardOutput
+        result3.wasUpToDate(':nativeImage') == false
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
     }
 }

@@ -42,13 +42,14 @@ import org.gradle.api.tasks.TaskProvider;
 public class GradleGraalPlugin implements Plugin<Project> {
 
     /** Location to cache downloaded and extracted GraalVM tooling. */
-    public static final Path CACHE_DIR =
+    static final Path CACHE_DIR =
             Paths.get(System.getProperty("user.home"), ".gradle", "caches", "com.palantir.graal");
 
     static final String TASK_GROUP = "Graal";
 
     @Override
     public final void apply(Project project) {
+        project.getPluginManager().apply("java");
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks().register(

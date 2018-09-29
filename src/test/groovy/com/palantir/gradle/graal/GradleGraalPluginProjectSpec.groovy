@@ -18,9 +18,6 @@ package com.palantir.gradle.graal
 
 import nebula.test.PluginProjectSpec
 
-/**
- * Tests for {@link GradleGraalPlugin}.
- */
 class GradleGraalPluginProjectSpec extends PluginProjectSpec {
 
     @Override
