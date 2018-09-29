@@ -149,17 +149,17 @@ public class NativeImageTask extends DefaultTask {
 
     @InputFiles
     @Classpath
-    public Provider<Configuration> getClasspath() {
+    public final Provider<Configuration> getClasspath() {
         return classpath;
     }
 
     @InputFiles
-    public Provider<FileCollection> getJarFiles() {
+    public final Provider<FileCollection> getJarFiles() {
         return jar.map(j -> j.getOutputs().getFiles());
     }
 
     @OutputFile
-    public Provider<RegularFile> getOutputFile() {
+    public final Provider<RegularFile> getOutputFile() {
         return outputFile;
     }
 }
