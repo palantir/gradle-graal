@@ -40,6 +40,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         graal {
             mainClass 'com.palantir.test.Main'
             outputName 'hello-world'
+            graalVersion '1.0.0-rc5'
         }
         '''
 

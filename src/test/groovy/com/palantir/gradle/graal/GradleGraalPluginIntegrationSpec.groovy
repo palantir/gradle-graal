@@ -55,7 +55,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.graal'
 
             graal {
-               graalVersion '1.0.0-rc5'
+               graalVersion '1.0.0-rc3'
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
@@ -70,8 +70,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         result.wasSkipped(':downloadGraalTooling') == false
 
         server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
-                "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-(macos|linux)-amd64.tar.gz"
-        file("cacheDir/.gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").exists()
+                "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
+        file("cacheDir/1.0.0-rc3/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
@@ -80,7 +80,6 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             apply plugin: 'com.palantir.graal'
 
             graal {
-               graalVersion '1.0.0-rc1'
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
