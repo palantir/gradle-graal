@@ -52,20 +52,27 @@ public class GradleGraalPlugin implements Plugin<Project> {
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks().register(
-                "downloadGraalTooling", DownloadGraalTask.class, extension);
+                "downloadGraalTooling",
+                DownloadGraalTask.class,
+                extension);
 
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks().register(
-                "extractGraalTooling", ExtractGraalTask.class, extension);
+                "extractGraalTooling",
+                ExtractGraalTask.class,
+                extension);
         extractGraal.configure(task -> {
             task.dependsOn(downloadGraal);
             task.setInputTgz(downloadGraal.get().getTgz());
         });
 
         TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
-                "nativeImage", NativeImageTask.class, extension);
+                "nativeImage",
+                NativeImageTask.class,
+                extension,
+                project.getConfigurations().named("runtimeClasspath"),
+                project.getTasks().named("jar"));
         nativeImage.configure(task -> {
             task.dependsOn(extractGraal);
-            task.dependsOn("jar");
         });
     }
 }

@@ -26,9 +26,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.jvm.tasks.Jar;
 
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
@@ -36,20 +41,24 @@ public class NativeImageTask extends DefaultTask {
     private final Provider<String> mainClass;
     private final Provider<String> outputName;
     private final Provider<String> graalVersion;
+    private final Provider<Configuration> classpath;
+    private final Provider<Jar> jar;
 
     @Inject
-    public NativeImageTask(GraalExtension extension) {
+    public NativeImageTask(GraalExtension extension, Provider<Configuration> classpath, Provider<Jar> jar) {
+        this.classpath = classpath;
+        this.jar = jar;
+        this.mainClass = extension.getMainClass();
+        this.outputName = extension.getOutputName();
+        this.graalVersion = extension.getGraalVersion();
+
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
-
-        mainClass = extension.getMainClass();
-        outputName = extension.getOutputName();
-        graalVersion = extension.getGraalVersion();
+        dependsOn(jar);
     }
 
     @TaskAction
     public final void nativeImage() {
-        // TODO(rfink): declare classpath list as @Input in order to unlock incremental builds
         getProject().exec(spec -> {
             if (!mainClass.isPresent()) {
                 throw new IllegalArgumentException("nativeImage requires graal.mainClass to be defined.");
@@ -95,13 +104,12 @@ public class NativeImageTask extends DefaultTask {
     }
 
     private String generateClasspathArgument() {
-        Set<File> classpath = new LinkedHashSet<>();
-        classpath.addAll(getProject().getConfigurations().getByName("runtimeClasspath").getFiles());
-        classpath.addAll(getProject().getTasks().getByName("jar").getOutputs().getFiles().getFiles());
+        Set<File> classpathArgument = new LinkedHashSet<>();
 
-        return classpath.stream()
-                .map(File::getAbsolutePath)
-                .collect(Collectors.joining(":"));
+        classpathArgument.addAll(classpath.get().getFiles());
+        classpathArgument.addAll(jar.get().getOutputs().getFiles().getFiles());
+
+        return classpathArgument.stream().map(File::getAbsolutePath).collect(Collectors.joining(":"));
     }
 
     private Path getArchitectureSpecifiedBinaryPath() {
@@ -126,5 +134,16 @@ public class NativeImageTask extends DefaultTask {
     @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
+    }
+
+    @InputFiles
+    @Classpath
+    public Provider<Configuration> getClasspath() {
+        return classpath;
+    }
+
+    @InputFiles
+    public Provider<FileCollection> getJarFiles() {
+        return jar.map(j -> j.getOutputs().getFiles());
     }
 }
