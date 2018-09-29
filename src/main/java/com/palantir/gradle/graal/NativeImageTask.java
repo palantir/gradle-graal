@@ -100,10 +100,10 @@ public class NativeImageTask extends DefaultTask {
 
     private String getExecutable() {
         return GradleGraalPlugin.CACHE_DIR
-                    .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
-                    .resolve(getArchitectureSpecifiedBinaryPath())
-                    .toFile()
-                    .getAbsolutePath();
+                .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
+                .resolve(getArchitectureSpecifiedBinaryPath())
+                .toFile()
+                .getAbsolutePath();
     }
 
     private String generateClasspathArgument() {
