@@ -76,6 +76,14 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.dependsOn(downloadGraal);
                 });
 
+        TaskProvider<ReflectionConfigTask> reflectionConfig = project.getTasks().register(
+                "reflectionConfig",
+                ReflectionConfigTask.class,
+                task -> {
+                    task.add("java.util.ArrayList");
+                    task.add("java.util.Optional");
+                });
+
         TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");
         project.getTasks().register(
                 "nativeImage",
@@ -87,8 +95,12 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
                     task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
                     task.setCacheDir(cacheDir);
+                    task.option(reflectionConfig.get().getOutputJsonFile()
+                            .map(file -> "-H:ReflectionConfigurationFiles=" + file));
+
                     task.dependsOn(extractGraal);
                     task.dependsOn(jar);
+                    task.dependsOn(reflectionConfig);
                 });
     }
 }
