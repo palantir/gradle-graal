@@ -21,11 +21,9 @@ import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
-    @Rule TemporaryFolder folder = new TemporaryFolder()
     @Rule MockWebServer server = new MockWebServer()
 
     String fakeBaseUrl
@@ -57,14 +55,16 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
+        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
 
         then:
-        println folder.getRoot()
-        new File(folder.getRoot(),
-                ".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
+        result.wasExecuted(':downloadGraalTooling')
+        result.wasUpToDate(':downloadGraalTooling') == false
+        result.wasSkipped(':downloadGraalTooling') == false
+
         server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-(macos|linux)-amd64.tar.gz"
+        file(".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
@@ -80,9 +80,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        println folder.getRoot()
-        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
-        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${folder.getRoot()}")
+        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
+        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
 
         then:
         result1.wasSkipped(':downloadGraalTooling') == false
