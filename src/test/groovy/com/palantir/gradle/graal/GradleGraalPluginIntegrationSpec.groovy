@@ -16,20 +16,27 @@
 
 package com.palantir.gradle.graal
 
+import java.nio.file.Files
+import java.nio.file.Path
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.gradle.util.GFileUtils
 import org.junit.Rule
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
     @Rule MockWebServer server = new MockWebServer()
-
     String fakeBaseUrl
+    Path cacheDir
 
     def setup() {
+        cacheDir = Files.createDirectory(getProjectDir().toPath().resolve("cacheDir"))
+        GFileUtils.cleanDirectory(cacheDir.toFile())
+
         fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
+
         new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
             package com.palantir.test;
@@ -55,7 +62,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
+        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling', "-Dcom.palantir.graal.cache.dir=${cacheDir}")
 
         then:
         result.wasExecuted(':downloadGraalTooling')
@@ -64,7 +71,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
         server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc5/graalvm-ce-1.0.0-rc5-(macos|linux)-amd64.tar.gz"
-        file(".gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").text == '<<tgz>>'
+        file("cacheDir/.gradle/caches/com.palantir.graal/1.0.0-rc5/graalvm-ce-1.0.0-rc5-amd64.tar.gz").exists()
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
@@ -80,8 +87,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
-        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Duser.home=${getProjectDir()}")
+        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling', "-Dcom.palantir.graal.cache.dir=${cacheDir}")
+        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling', "-Dcom.palantir.graal.cache.dir=${cacheDir}")
 
         then:
         result1.wasSkipped(':downloadGraalTooling') == false

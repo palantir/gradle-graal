@@ -18,6 +18,7 @@ package com.palantir.gradle.graal;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskProvider;
@@ -42,8 +43,8 @@ import org.gradle.api.tasks.TaskProvider;
 public class GradleGraalPlugin implements Plugin<Project> {
 
     /** Location to cache downloaded and extracted GraalVM tooling. */
-    static final Path CACHE_DIR =
-            Paths.get(System.getProperty("user.home"), ".gradle", "caches", "com.palantir.graal");
+    static final Path CACHE_DIR = Optional.ofNullable(Paths.get(System.getProperty("com.palantir.graal.cache.dir")))
+            .orElse(Paths.get(System.getProperty("user.home"), ".gradle", "caches", "com.palantir.graal"));
 
     static final String TASK_GROUP = "Graal";
 

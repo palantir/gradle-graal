@@ -53,8 +53,9 @@ public class DownloadGraalTask extends DefaultTask {
     public final void downloadGraal() throws IOException {
         Path cache = getCache().get();
         Files.createDirectories(cache);
-        InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream();
-        Files.copy(in, getTgz().get().toPath(), StandardCopyOption.REPLACE_EXISTING);
+        try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
+            Files.copy(in, getTgz().get().toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     @OutputFile
