@@ -49,6 +49,8 @@ public class NativeImageTask extends DefaultTask {
     private final RegularFileProperty jarFile = newInputFile();
     private final RegularFileProperty outputFile = newOutputFile();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+    private final NativeImageOptions options = new NativeImageOptions(getProject());
+
 
     public NativeImageTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -57,6 +59,9 @@ public class NativeImageTask extends DefaultTask {
         this.outputFile.set(getProject().getLayout().getBuildDirectory()
                 .dir("graal")
                 .map(d -> d.file(outputName.get())));
+
+        options.set(outputName.map(string -> "-H:Name=" + string));
+        options.set(maybeCreateOutputDirectory(outputFile).map(string -> "-H:Path=" + string));
 
         doLast(t -> {
             getLogger().warn("native-image available at {} ({}MB)",
@@ -70,10 +75,7 @@ public class NativeImageTask extends DefaultTask {
         List<String> args = new ArrayList<>();
         args.add("-cp");
         args.add(generateClasspathArgument());
-        args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
-        if (outputName.isPresent()) {
-            args.add("-H:Name=" + outputName.get());
-        }
+        args.addAll(options.get());
         args.add(mainClass.get());
 
         getProject().exec(spec -> {
@@ -82,10 +84,17 @@ public class NativeImageTask extends DefaultTask {
         });
     }
 
-    private File maybeCreateOutputDirectory() throws IOException {
-        File directory = getOutputFile().get().getAsFile().getParentFile();
-        Files.createDirectories(directory.toPath());
-        return directory;
+    private static Provider<String> maybeCreateOutputDirectory(Provider<RegularFile> output) {
+        return output.map(o -> {
+            try {
+                File directory = o.getAsFile().getParentFile();
+                Files.createDirectories(directory.toPath());
+                String absolutePath = directory.getAbsolutePath();
+                return absolutePath;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     private String getExecutable() {
@@ -132,11 +141,6 @@ public class NativeImageTask extends DefaultTask {
     }
 
     @Input
-    public final Provider<String> getOutputName() {
-        return outputName;
-    }
-
-    @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
     }
@@ -162,6 +166,19 @@ public class NativeImageTask extends DefaultTask {
 
     public final void setJarFile(Provider<File> provider) {
         jarFile.set(getProject().getLayout().file(provider));
+    }
+
+    @Input
+    public final Provider<List<String>> getOptions() {
+        return options.getProvider();
+    }
+
+    public final void option(String string) {
+        this.options.set(string);
+    }
+
+    public final void option(Provider<String> string) {
+        this.options.set(string);
     }
 
     @OutputFile

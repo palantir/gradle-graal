@@ -42,6 +42,10 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
             outputName 'hello-world'
             graalVersion '1.0.0-rc5'
         }
+        
+        nativeImage {
+            option '-H:Optimize=1'
+        }
         '''
 
         when:
