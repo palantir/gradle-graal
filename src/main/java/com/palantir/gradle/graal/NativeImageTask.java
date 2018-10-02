@@ -31,6 +31,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -42,24 +43,22 @@ import org.gradle.jvm.tasks.Jar;
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
 
-    private final Provider<String> mainClass;
-    private final Provider<String> outputName;
-    private final Provider<String> graalVersion;
+    private final Property<String> mainClass = getProject().getObjects().property(String.class);
+    private final Property<String> outputName = getProject().getObjects().property(String.class);
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Provider<Configuration> classpath;
     private final Provider<Jar> jar;
     private final Provider<RegularFile> outputFile;
 
     @Inject
-    public NativeImageTask(GraalExtension extension, Provider<Configuration> classpath, Provider<Jar> jar) {
-        this.classpath = classpath;
-        this.jar = jar;
-        this.mainClass = extension.getMainClass();
-        this.outputName = extension.getOutputName();
-        this.graalVersion = extension.getGraalVersion();
-        this.outputFile = getProject().getLayout().getBuildDirectory().dir("graal").map(d -> d.file(outputName.get()));
-
+    public NativeImageTask(Provider<Configuration> classpath, Provider<Jar> jar) {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+
+        this.classpath = classpath;
+        this.jar = jar;
+        this.outputFile = getProject().getLayout().getBuildDirectory().dir("graal").map(d -> d.file(outputName.get()));
+
         dependsOn(jar);
         doLast(t -> {
             getLogger().warn("native-image available at {} ({}MB)",
@@ -137,6 +136,10 @@ public class NativeImageTask extends DefaultTask {
         return mainClass;
     }
 
+    public final void setMainClass(Provider<String> provider) {
+        mainClass.set(provider);
+    }
+
     @Input
     public final Provider<String> getOutputName() {
         return outputName;
@@ -145,6 +148,10 @@ public class NativeImageTask extends DefaultTask {
     @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
+    }
+
+    public final void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
     }
 
     @InputFiles
@@ -161,5 +168,9 @@ public class NativeImageTask extends DefaultTask {
     @OutputFile
     public final Provider<RegularFile> getOutputFile() {
         return outputFile;
+    }
+
+    public final void setOutputName(Provider<String> provider) {
+        outputName.set(provider);
     }
 }

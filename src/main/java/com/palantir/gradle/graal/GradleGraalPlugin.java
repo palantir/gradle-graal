@@ -74,11 +74,13 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
                 "nativeImage",
                 NativeImageTask.class,
-                extension,
                 project.getConfigurations().named("runtimeClasspath"),
                 project.getTasks().named("jar"));
         nativeImage.configure(task -> {
             task.dependsOn(extractGraal);
+            task.setMainClass(extension.getMainClass());
+            task.setOutputName(extension.getOutputName());
+            task.setGraalVersion(extension.getGraalVersion());
         });
     }
 }
