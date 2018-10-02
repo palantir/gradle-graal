@@ -66,9 +66,17 @@ public class DownloadGraalTask extends DefaultTask {
         return graalVersion;
     }
 
+    public final void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
+    }
+
     @Input
     public final Provider<String> getDownloadBaseUrl() {
         return downloadBaseUrl;
+    }
+
+    public final void setDownloadBaseUrl(Provider<String> provider) {
+        downloadBaseUrl.set(provider);
     }
 
     private Provider<Path> getCache() {
@@ -101,13 +109,5 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
-    }
-
-    public void setGraalVersion(Provider<String> provider) {
-        graalVersion.set(provider);
-    }
-
-    public void setDownloadBaseUrl(Provider<String> provider) {
-        downloadBaseUrl.set(provider);
     }
 }
