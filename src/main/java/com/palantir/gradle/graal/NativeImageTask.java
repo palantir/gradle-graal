@@ -31,6 +31,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -48,7 +49,7 @@ public class NativeImageTask extends DefaultTask {
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Provider<Configuration> classpath;
     private final Provider<Jar> jar;
-    private final Provider<RegularFile> outputFile;
+    private final RegularFileProperty outputFile = newOutputFile();
 
     @Inject
     public NativeImageTask(Provider<Configuration> classpath, Provider<Jar> jar) {
@@ -57,7 +58,9 @@ public class NativeImageTask extends DefaultTask {
 
         this.classpath = classpath;
         this.jar = jar;
-        this.outputFile = getProject().getLayout().getBuildDirectory().dir("graal").map(d -> d.file(outputName.get()));
+        this.outputFile.set(getProject().getLayout().getBuildDirectory()
+                .dir("graal")
+                .map(d -> d.file(outputName.get())));
 
         dependsOn(jar);
         doLast(t -> {
