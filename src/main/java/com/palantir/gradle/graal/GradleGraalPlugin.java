@@ -57,7 +57,10 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks().register(
                 "downloadGraalTooling",
                 DownloadGraalTask.class,
-                extension);
+                task -> {
+                    task.setGraalVersion(extension.getGraalVersion());
+                    task.setDownloadBaseUrl(extension.getDownloadBaseUrl());
+                });
 
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks().register(
                 "extractGraalTooling",

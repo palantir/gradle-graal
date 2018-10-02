@@ -23,8 +23,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -36,17 +36,14 @@ public class DownloadGraalTask extends DefaultTask {
     private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
 
-    private final Provider<String> graalVersion;
-    private final Provider<String> downloadBaseUrl;
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
 
-    @Inject
-    public DownloadGraalTask(GraalExtension extension) {
-        onlyIf(task -> !getTgz().get().exists());
+    public DownloadGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
 
-        graalVersion = extension.getGraalVersion();
-        downloadBaseUrl = extension.getDownloadBaseUrl();
+        onlyIf(task -> !getTgz().get().exists());
     }
 
     @TaskAction
@@ -103,5 +100,13 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
+    }
+
+    public void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
+    }
+
+    public void setDownloadBaseUrl(Provider<String> provider) {
+        downloadBaseUrl.set(provider);
     }
 }
