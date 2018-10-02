@@ -65,11 +65,11 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks().register(
                 "extractGraalTooling",
                 ExtractGraalTask.class,
-                extension);
-        extractGraal.configure(task -> {
-            task.dependsOn(downloadGraal);
-            task.setInputTgz(downloadGraal.get().getTgz());
-        });
+                task -> {
+                    task.setGraalVersion(extension.getGraalVersion());
+                    task.setInputTgz(downloadGraal.get().getTgz());
+                    task.dependsOn(downloadGraal);
+                });
 
         TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
                 "nativeImage",

@@ -16,7 +16,6 @@
 
 package com.palantir.gradle.graal;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -24,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -43,7 +43,7 @@ public class DownloadGraalTask extends DefaultTask {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
 
-        onlyIf(task -> !getTgz().get().exists());
+        onlyIf(task -> !getTgz().get().getAsFile().exists());
     }
 
     @TaskAction
@@ -51,13 +51,14 @@ public class DownloadGraalTask extends DefaultTask {
         Path cache = getCache().get();
         Files.createDirectories(cache);
         try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
-            Files.copy(in, getTgz().get().toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     @OutputFile
-    public final Provider<File> getTgz() {
-        return getCache().map(cacheDir -> cacheDir.resolve(render(FILENAME_PATTERN)).toFile());
+    public final Provider<RegularFile> getTgz() {
+        return getProject().getLayout().file(
+                getCache().map(cacheDir -> cacheDir.resolve(render(FILENAME_PATTERN)).toFile()));
     }
 
     @Input

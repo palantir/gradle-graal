@@ -16,10 +16,10 @@
 
 package com.palantir.gradle.graal;
 
-import java.io.File;
 import java.nio.file.Path;
-import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -30,30 +30,14 @@ import org.gradle.api.tasks.TaskAction;
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
 
-    private final Property<File> inputTgz = getProject().getObjects().property(File.class);
-    private final Provider<String> graalVersion;
+    private final RegularFileProperty inputTgz = newInputFile();
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
 
-    @Inject
-    public ExtractGraalTask(GraalExtension extension) {
-        onlyIf(task -> !getOutputDirectory().toFile().exists());
+    public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.");
 
-        graalVersion = extension.getGraalVersion();
-    }
-
-    @InputFile
-    public final Provider<File> getInputTgz() {
-        return inputTgz;
-    }
-
-    public final void setInputTgz(Provider<File> value) {
-        this.inputTgz.set(value);
-    }
-
-    @Input
-    public final Provider<String> getGraalVersion() {
-        return graalVersion;
+        onlyIf(task -> !getOutputDirectory().toFile().exists());
     }
 
     @TaskAction
@@ -65,9 +49,27 @@ public class ExtractGraalTask extends DefaultTask {
         // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
         getProject().exec(spec -> {
             spec.executable("tar");
-            spec.args("-xzf", inputTgz.get().getAbsolutePath());
+            spec.args("-xzf", inputTgz.get().getAsFile().getAbsolutePath());
             spec.workingDir(GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()));
         });
+    }
+
+    @InputFile
+    public final Provider<RegularFile> getInputTgz() {
+        return inputTgz;
+    }
+
+    public final void setInputTgz(Provider<RegularFile> value) {
+        this.inputTgz.set(value);
+    }
+
+    @Input
+    public final Provider<String> getGraalVersion() {
+        return graalVersion;
+    }
+
+    public final void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
     }
 
     @OutputDirectory
