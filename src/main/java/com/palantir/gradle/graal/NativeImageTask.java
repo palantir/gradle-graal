@@ -48,6 +48,7 @@ public class NativeImageTask extends DefaultTask {
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = newInputFile();
     private final RegularFileProperty outputFile = newOutputFile();
+    private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public NativeImageTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -88,7 +89,7 @@ public class NativeImageTask extends DefaultTask {
     }
 
     private String getExecutable() {
-        return GradleGraalPlugin.CACHE_DIR
+        return cacheDir.get()
                 .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
                 .resolve(getArchitectureSpecifiedBinaryPath())
                 .toFile()
@@ -170,5 +171,9 @@ public class NativeImageTask extends DefaultTask {
 
     public final void setOutputName(Provider<String> provider) {
         outputName.set(provider);
+    }
+
+    final void setCacheDir(Path value) {
+        cacheDir.set(value);
     }
 }

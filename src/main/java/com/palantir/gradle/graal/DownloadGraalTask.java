@@ -30,7 +30,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-/** Downloads GraalVM binaries to {@link GradleGraalPlugin#CACHE_DIR}. */
+/** Downloads GraalVM binaries. */
 public class DownloadGraalTask extends DefaultTask {
 
     private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
@@ -38,6 +38,7 @@ public class DownloadGraalTask extends DefaultTask {
 
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
+    private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public DownloadGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -48,7 +49,7 @@ public class DownloadGraalTask extends DefaultTask {
 
     @TaskAction
     public final void downloadGraal() throws IOException {
-        Path cache = getCache().get();
+        Path cache = getCacheSubdirectory().get();
         Files.createDirectories(cache);
         try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
             Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -57,8 +58,8 @@ public class DownloadGraalTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getTgz() {
-        return getProject().getLayout().file(
-                getCache().map(cacheDir -> cacheDir.resolve(render(FILENAME_PATTERN)).toFile()));
+        return getProject().getLayout()
+                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
     }
 
     @Input
@@ -79,8 +80,8 @@ public class DownloadGraalTask extends DefaultTask {
         downloadBaseUrl.set(provider);
     }
 
-    private Provider<Path> getCache() {
-        return graalVersion.map(version -> GradleGraalPlugin.CACHE_DIR.resolve(version));
+    private Provider<Path> getCacheSubdirectory() {
+        return cacheDir.map(dir -> dir.resolve(graalVersion.get()));
     }
 
     private String render(String pattern) {
@@ -109,5 +110,9 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
+    }
+
+    final void setCacheDir(Path value) {
+        cacheDir.set(value);
     }
 }

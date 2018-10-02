@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -34,6 +35,7 @@ public class ExtractGraalTask extends DefaultTask {
     private final RegularFileProperty inputTgz = newInputFile();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final DirectoryProperty outputDirectory = newOutputDirectory();
+    private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -42,7 +44,7 @@ public class ExtractGraalTask extends DefaultTask {
         onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
         outputDirectory.set(graalVersion.map(v ->
                 getProject().getLayout().getProjectDirectory()
-                        .dir(GradleGraalPlugin.CACHE_DIR.toFile().getAbsolutePath())
+                        .dir(cacheDir.get().toFile().getAbsolutePath())
                         .dir(v)
                         .dir("graalvm-ce-" + v)));
     }
@@ -57,7 +59,7 @@ public class ExtractGraalTask extends DefaultTask {
         getProject().exec(spec -> {
             spec.executable("tar");
             spec.args("-xzf", inputTgz.get().getAsFile().getAbsolutePath());
-            spec.workingDir(GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()));
+            spec.workingDir(cacheDir.get().resolve(graalVersion.get()));
         });
     }
 
@@ -82,5 +84,9 @@ public class ExtractGraalTask extends DefaultTask {
     @OutputDirectory
     public final Provider<Directory> getOutputDirectory() {
         return outputDirectory;
+    }
+
+    final void setCacheDir(Path value) {
+        cacheDir.set(value);
     }
 }
