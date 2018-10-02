@@ -17,6 +17,8 @@
 package com.palantir.gradle.graal;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -25,90 +27,82 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
 
-    @Input private Provider<String> mainClass;
-    @Input private Provider<String> outputName;
-    @Input private Provider<String> graalVersion;
+    private final Property<String> mainClass = getProject().getObjects().property(String.class);
+    private final Property<String> outputName = getProject().getObjects().property(String.class);
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
+    private final RegularFileProperty jarFile = newInputFile();
+    private final RegularFileProperty outputFile = newOutputFile();
+    private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+
+    public NativeImageTask() {
+        setGroup(GradleGraalPlugin.TASK_GROUP);
+        setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+
+        this.outputFile.set(getProject().getLayout().getBuildDirectory()
+                .dir("graal")
+                .map(d -> d.file(outputName.get())));
+
+        doLast(t -> {
+            getLogger().warn("native-image available at {} ({}MB)",
+                    getProject().relativePath(outputFile.get().getAsFile()),
+                    fileSizeMegabytes(outputFile.get()));
+        });
+    }
 
     @TaskAction
-    public final void nativeImage() {
-        // TODO(rfink): declare classpath list as @Input in order to unlock incremental builds
+    public final void nativeImage() throws IOException {
+        List<String> args = new ArrayList<>();
+        args.add("-cp");
+        args.add(generateClasspathArgument());
+        args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
+        if (outputName.isPresent()) {
+            args.add("-H:Name=" + outputName.get());
+        }
+        args.add(mainClass.get());
+
         getProject().exec(spec -> {
-            if (!mainClass.isPresent()) {
-                throw new IllegalArgumentException("nativeImage requires graal.mainClass to be defined.");
-            }
-            if (!graalVersion.isPresent()) {
-                throw new IllegalStateException("nativeImage requires graal.version to be defined.");
-            }
-
-            List<String> args = new ArrayList<>();
-            args.add("-cp");
-            args.add(generateClasspathArgument());
-
-            args.add("-H:Path=" + getOutputDirectory());
-
-            if (outputName.isPresent()) {
-                args.add("-H:Name=" + outputName.get());
-            }
-
-            args.add(mainClass.get());
-
-            spec.executable(getExecutable(graalVersion.get()));
+            spec.executable(getExecutable());
             spec.args(args);
         });
     }
 
-    @Override
-    public final String getGroup() {
-        return GradleGraalPlugin.TASK_GROUP;
+    private File maybeCreateOutputDirectory() throws IOException {
+        File directory = getOutputFile().get().getAsFile().getParentFile();
+        Files.createDirectories(directory.toPath());
+        return directory;
     }
 
-    @Override
-    public final String getDescription() {
-        return "Runs GraalVM's native-image command with configured options and parameters.";
-    }
-
-    private String getOutputDirectory() {
-        File outputDirectory = getProject().getProjectDir().toPath().resolve(Paths.get("build", "graal")).toFile();
-
-        if (!(outputDirectory.mkdirs() || outputDirectory.exists())) {
-            throw new IllegalStateException(
-                    "Output directory does not exist and cannot be created: " + outputDirectory);
-        }
-
-        return outputDirectory.getAbsolutePath();
-    }
-
-    private String getExecutable(String version) {
-        return GradleGraalPlugin.CACHE_DIR
-                .resolve(Paths.get(version, "graalvm-ce-" + version))
+    private String getExecutable() {
+        return cacheDir.get()
+                .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
                 .resolve(getArchitectureSpecifiedBinaryPath())
                 .toFile()
                 .getAbsolutePath();
     }
 
     private String generateClasspathArgument() {
-        Set<File> classpath = new LinkedHashSet<>();
-        classpath.addAll(getProject().getConfigurations().getByName("runtimeClasspath").getFiles());
-        classpath.addAll(getProject().getTasks().getByName("jar").getOutputs().getFiles().getFiles());
+        Set<File> classpathArgument = new LinkedHashSet<>();
 
-        return classpath.stream()
-                .map(File::getAbsolutePath)
-                .collect(Collectors.joining(":"));
-    }
+        classpathArgument.addAll(classpath.get().getFiles());
+        classpathArgument.add(jarFile.getAsFile().get());
 
-    @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(Provider<String> mainClass, Provider<String> outputName,
-            Provider<String> graalVersion) {
-        this.mainClass = mainClass;
-        this.outputName = outputName;
-        this.graalVersion = graalVersion;
+        return classpathArgument.stream().map(File::getAbsolutePath).collect(Collectors.joining(":"));
     }
 
     private Path getArchitectureSpecifiedBinaryPath() {
@@ -120,4 +114,66 @@ public class NativeImageTask extends DefaultTask {
         }
     }
 
+    private long fileSizeMegabytes(RegularFile regularFile) {
+        try {
+            return Files.size(regularFile.getAsFile().toPath()) / (1000 * 1000);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Input
+    public final Provider<String> getMainClass() {
+        return mainClass;
+    }
+
+    public final void setMainClass(Provider<String> provider) {
+        mainClass.set(provider);
+    }
+
+    @Input
+    public final Provider<String> getOutputName() {
+        return outputName;
+    }
+
+    @Input
+    public final Provider<String> getGraalVersion() {
+        return graalVersion;
+    }
+
+    public final void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
+    }
+
+    @InputFiles
+    @Classpath
+    public final Provider<Configuration> getClasspath() {
+        return classpath;
+    }
+
+    public final void setClasspath(Provider<Configuration> provider) {
+        classpath.set(provider);
+    }
+
+    @InputFile
+    public final Provider<RegularFile> getJarFiles() {
+        return jarFile;
+    }
+
+    public final void setJarFile(Provider<File> provider) {
+        jarFile.set(getProject().getLayout().file(provider));
+    }
+
+    @OutputFile
+    public final Provider<RegularFile> getOutputFile() {
+        return outputFile;
+    }
+
+    public final void setOutputName(Provider<String> provider) {
+        outputName.set(provider);
+    }
+
+    final void setCacheDir(Path value) {
+        cacheDir.set(value);
+    }
 }

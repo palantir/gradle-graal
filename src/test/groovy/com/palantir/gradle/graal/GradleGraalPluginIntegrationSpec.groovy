@@ -18,12 +18,20 @@ package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.Rule
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
-    def 'test default version nativeImage'() {
-        setup:
-        new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
-        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
+
+    @Rule MockWebServer server = new MockWebServer()
+    String fakeBaseUrl
+
+    def setup() {
+        fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
+
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
             package com.palantir.test;
 
             public final class Main {
@@ -33,26 +41,53 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             }
         '''
 
-        buildFile << '''
-            apply plugin: 'java'
+        file('gradle.properties') << "com.palantir.graal.cache.dir=${getProjectDir().toPath().resolve("cacheDir").toAbsolutePath()}"
+    }
+
+    def 'allows specifying different graal version'() {
+        setup:
+        buildFile << """
             apply plugin: 'com.palantir.graal'
 
             graal {
-               mainClass 'com.palantir.test.Main'
-               outputName 'hello-world'
+               graalVersion '1.0.0-rc3'
+               downloadBaseUrl '${fakeBaseUrl}'
             }
-        '''
+        """
+        server.enqueue(new MockResponse().setBody('<<tgz>>'));
 
         when:
-        ExecutionResult result = runTasks('nativeImage')
-        // capture output from Gradle runs
-        println "Gradle Standard Out:\n" + result.standardOutput
-        println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
 
         then:
-        result.success
-        output.exists()
-        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+        println result.getStandardOutput()
+        result.wasExecuted(':downloadGraalTooling')
+        !result.wasUpToDate(':downloadGraalTooling')
+        !result.wasSkipped(':downloadGraalTooling')
+
+        server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
+                "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
+
+        file("cacheDir/1.0.0-rc3/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
+    }
+
+    def 'downloadGraalTooling behaves incrementally'() {
+        setup:
+        buildFile << """
+            apply plugin: 'com.palantir.graal'
+
+            graal {
+               downloadBaseUrl '${fakeBaseUrl}'
+            }
+        """
+        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+
+        when:
+        ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling')
+        ExecutionResult result2 = runTasksSuccessfully('downloadGraalTooling')
+
+        then:
+        result1.wasSkipped(':downloadGraalTooling') == false
+        result2.wasSkipped(':downloadGraalTooling') == true
     }
 }

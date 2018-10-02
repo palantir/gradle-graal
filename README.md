@@ -4,7 +4,7 @@ A simple wrapper around GraalVM tooling that will download and locally cache a G
 available select parts of the GraalVM compiler for use in Gradle builds.
 
 To use this plugin, apply `com.palantir.graal`. See a full example in the
-[integration tests](src/test/groovy/com/palantir/gradle/graal/GradleGraalPluginIntegrationSpec.groovy).
+[ETE tests](src/test/groovy/com/palantir/gradle/graal/GradleGraalEndToEndSpec.groovy).
 
 Gradle Tasks
 ------------
