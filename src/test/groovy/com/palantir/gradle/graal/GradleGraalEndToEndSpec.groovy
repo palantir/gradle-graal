@@ -23,8 +23,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
     def 'test default version nativeImage'() {
         setup:
-        new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
-        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
         package com.palantir.test;
        
         public final class Main {
@@ -74,7 +74,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
         then:
         println result3.standardOutput
-        result3.wasUpToDate(':nativeImage') == false
+        !result3.wasUpToDate(':nativeImage')
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
     }
 }

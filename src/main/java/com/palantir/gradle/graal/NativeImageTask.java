@@ -66,13 +66,6 @@ public class NativeImageTask extends DefaultTask {
 
     @TaskAction
     public final void nativeImage() throws IOException {
-        if (!mainClass.isPresent()) {
-            throw new IllegalArgumentException("nativeImage requires graal.mainClass to be defined.");
-        }
-        if (!graalVersion.isPresent()) {
-            throw new IllegalStateException("nativeImage requires graal.version to be defined.");
-        }
-
         List<String> args = new ArrayList<>();
         args.add("-cp");
         args.add(generateClasspathArgument());

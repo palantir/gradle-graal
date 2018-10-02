@@ -37,8 +37,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
         fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
 
-        new File(getProjectDir(), "src/main/java/com/palantir/test").mkdirs()
-        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java") << '''
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
             package com.palantir.test;
 
             public final class Main {
@@ -66,8 +66,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
         then:
         result.wasExecuted(':downloadGraalTooling')
-        result.wasUpToDate(':downloadGraalTooling') == false
-        result.wasSkipped(':downloadGraalTooling') == false
+        !result.wasUpToDate(':downloadGraalTooling')
+        !result.wasSkipped(':downloadGraalTooling')
 
         server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
