@@ -23,63 +23,65 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.file.RegularFile;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
-/** Downloads GraalVM binaries to {@link GradleGraalPlugin#CACHE_DIR}. */
+/** Downloads GraalVM binaries. */
 public class DownloadGraalTask extends DefaultTask {
 
     private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
 
-    @Input private Provider<String> graalVersion;
-    @Input private Provider<String> downloadBaseUrl;
+    private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
+    private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+
+    public DownloadGraalTask() {
+        setGroup(GradleGraalPlugin.TASK_GROUP);
+        setDescription("Downloads and caches GraalVM binaries.");
+
+        onlyIf(task -> !getTgz().get().getAsFile().exists());
+    }
 
     @TaskAction
     public final void downloadGraal() throws IOException {
-        Path cache = getCache();
-        if (!(cache.toFile().mkdirs() || cache.toFile().exists())) {
-            throw new IllegalStateException(
-                    "Unable to make cache directory, and the cache directory does not already exist: " + cache);
+        Path cache = getCacheSubdirectory().get();
+        Files.createDirectories(cache);
+        try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
+            Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
-
-        InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream();
-        Files.copy(in, getOutput(), StandardCopyOption.REPLACE_EXISTING);
-    }
-
-    @Override
-    public final String getGroup() {
-        return GradleGraalPlugin.TASK_GROUP;
-    }
-
-    @Override
-    public final String getDescription() {
-        return "Downloads and caches GraalVM binaries.";
     }
 
     @OutputFile
-    public final Path getOutput() {
-        return getCache().resolve(render(FILENAME_PATTERN));
+    public final Provider<RegularFile> getTgz() {
+        return getProject().getLayout()
+                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
     }
 
-    /** Returns a lambda that prevents this task from running if the download target already exists in the cache. */
-    @Override
-    public final Spec<? super TaskInternal> getOnlyIf() {
-        return spec -> !getOutput().toFile().exists();
+    @Input
+    public final Provider<String> getGraalVersion() {
+        return graalVersion;
     }
 
-    @SuppressWarnings("checkstyle:hiddenfield")
-    public final void configure(Provider<String> graalVersion, Provider<String> downloadBaseUrl) {
-        this.graalVersion = graalVersion;
-        this.downloadBaseUrl = downloadBaseUrl;
+    public final void setGraalVersion(Provider<String> provider) {
+        graalVersion.set(provider);
     }
 
-    private Path getCache() {
-        return GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get());
+    @Input
+    public final Provider<String> getDownloadBaseUrl() {
+        return downloadBaseUrl;
+    }
+
+    public final void setDownloadBaseUrl(Provider<String> provider) {
+        downloadBaseUrl.set(provider);
+    }
+
+    private Provider<Path> getCacheSubdirectory() {
+        return cacheDir.map(dir -> dir.resolve(graalVersion.get()));
     }
 
     private String render(String pattern) {
@@ -108,5 +110,9 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
+    }
+
+    final void setCacheDir(Path value) {
+        cacheDir.set(value);
     }
 }
