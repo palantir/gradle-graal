@@ -51,7 +51,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
-        Path cacheDir = Optional.ofNullable((String) project.getProperties().get("com.palantir.graal.cache.dir"))
+        Path cacheDir = Optional.ofNullable((String) project.findProperty("com.palantir.graal.cache.dir"))
                 .map(Paths::get)
                 .orElse(project.getGradle().getGradleUserHomeDir().toPath()
                         .resolve("caches")
