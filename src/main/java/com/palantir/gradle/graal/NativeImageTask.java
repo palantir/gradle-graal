@@ -29,17 +29,16 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.jvm.tasks.Jar;
 
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
@@ -48,21 +47,19 @@ public class NativeImageTask extends DefaultTask {
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Provider<Configuration> classpath;
-    private final Provider<Jar> jar;
+    private final RegularFileProperty jarFile = newInputFile();
     private final RegularFileProperty outputFile = newOutputFile();
 
     @Inject
-    public NativeImageTask(Provider<Configuration> classpath, Provider<Jar> jar) {
+    public NativeImageTask(Provider<Configuration> classpath) {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
 
         this.classpath = classpath;
-        this.jar = jar;
         this.outputFile.set(getProject().getLayout().getBuildDirectory()
                 .dir("graal")
                 .map(d -> d.file(outputName.get())));
 
-        dependsOn(jar);
         doLast(t -> {
             getLogger().warn("native-image available at {} ({}MB)",
                     getProject().relativePath(outputFile.get().getAsFile()),
@@ -112,7 +109,7 @@ public class NativeImageTask extends DefaultTask {
         Set<File> classpathArgument = new LinkedHashSet<>();
 
         classpathArgument.addAll(classpath.get().getFiles());
-        classpathArgument.addAll(jar.get().getOutputs().getFiles().getFiles());
+        classpathArgument.add(jarFile.getAsFile().get());
 
         return classpathArgument.stream().map(File::getAbsolutePath).collect(Collectors.joining(":"));
     }
@@ -163,9 +160,13 @@ public class NativeImageTask extends DefaultTask {
         return classpath;
     }
 
-    @InputFiles
-    public final Provider<FileCollection> getJarFiles() {
-        return jar.map(j -> j.getOutputs().getFiles());
+    @InputFile
+    public final Provider<RegularFile> getJarFiles() {
+        return jarFile;
+    }
+
+    public void setJarFile(Provider<File> provider) {
+        jarFile.set(getProject().getLayout().file(provider));
     }
 
     @OutputFile

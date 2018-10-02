@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.jvm.tasks.Jar;
 
 /**
  * Adds tasks to download, extract and interact with GraalVM tooling.
@@ -71,16 +72,18 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.dependsOn(downloadGraal);
                 });
 
+        TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");
         TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
                 "nativeImage",
                 NativeImageTask.class,
-                project.getConfigurations().named("runtimeClasspath"),
-                project.getTasks().named("jar"));
+                project.getConfigurations().named("runtimeClasspath"));
         nativeImage.configure(task -> {
-            task.dependsOn(extractGraal);
             task.setMainClass(extension.getMainClass());
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
+            task.dependsOn(extractGraal);
+            task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
+            task.dependsOn(jar);
         });
     }
 }
