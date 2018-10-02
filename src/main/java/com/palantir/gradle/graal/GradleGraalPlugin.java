@@ -21,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.Optional;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
 
@@ -52,7 +53,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
 
     @Override
     public final void apply(Project project) {
-        project.getPluginManager().apply("java");
+        project.getPluginManager().apply(JavaPlugin.class);
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks().register(
@@ -73,17 +74,17 @@ public class GradleGraalPlugin implements Plugin<Project> {
                 });
 
         TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");
-        TaskProvider<NativeImageTask> nativeImage = project.getTasks().register(
+        project.getTasks().register(
                 "nativeImage",
                 NativeImageTask.class,
-                project.getConfigurations().named("runtimeClasspath"));
-        nativeImage.configure(task -> {
-            task.setMainClass(extension.getMainClass());
-            task.setOutputName(extension.getOutputName());
-            task.setGraalVersion(extension.getGraalVersion());
-            task.dependsOn(extractGraal);
-            task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
-            task.dependsOn(jar);
-        });
+                task -> {
+                    task.setMainClass(extension.getMainClass());
+                    task.setOutputName(extension.getOutputName());
+                    task.setGraalVersion(extension.getGraalVersion());
+                    task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
+                    task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+                    task.dependsOn(extractGraal);
+                    task.dependsOn(jar);
+                });
     }
 }

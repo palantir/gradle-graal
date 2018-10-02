@@ -26,7 +26,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
@@ -46,16 +45,14 @@ public class NativeImageTask extends DefaultTask {
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
-    private final Provider<Configuration> classpath;
+    private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = newInputFile();
     private final RegularFileProperty outputFile = newOutputFile();
 
-    @Inject
-    public NativeImageTask(Provider<Configuration> classpath) {
+    public NativeImageTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
 
-        this.classpath = classpath;
         this.outputFile.set(getProject().getLayout().getBuildDirectory()
                 .dir("graal")
                 .map(d -> d.file(outputName.get())));
@@ -160,12 +157,16 @@ public class NativeImageTask extends DefaultTask {
         return classpath;
     }
 
+    public final void setClasspath(Provider<Configuration> provider) {
+        classpath.set(provider);
+    }
+
     @InputFile
     public final Provider<RegularFile> getJarFiles() {
         return jarFile;
     }
 
-    public void setJarFile(Provider<File> provider) {
+    public final void setJarFile(Provider<File> provider) {
         jarFile.set(getProject().getLayout().file(provider));
     }
 
