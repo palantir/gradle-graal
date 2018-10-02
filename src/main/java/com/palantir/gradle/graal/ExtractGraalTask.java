@@ -16,8 +16,9 @@
 
 package com.palantir.gradle.graal;
 
-import java.nio.file.Path;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -32,12 +33,18 @@ public class ExtractGraalTask extends DefaultTask {
 
     private final RegularFileProperty inputTgz = newInputFile();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final DirectoryProperty outputDirectory = newOutputDirectory();
 
     public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.");
 
-        onlyIf(task -> !getOutputDirectory().toFile().exists());
+        onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
+        outputDirectory.set(graalVersion.map(v ->
+                getProject().getLayout().getProjectDirectory()
+                        .dir(GradleGraalPlugin.CACHE_DIR.toFile().getAbsolutePath())
+                        .dir(v)
+                        .dir("graalvm-ce-" + v)));
     }
 
     @TaskAction
@@ -73,7 +80,7 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     @OutputDirectory
-    public final Path getOutputDirectory() {
-        return GradleGraalPlugin.CACHE_DIR.resolve(graalVersion.get()).resolve("graalvm-ce-" + graalVersion.get());
+    public final Provider<Directory> getOutputDirectory() {
+        return outputDirectory;
     }
 }
