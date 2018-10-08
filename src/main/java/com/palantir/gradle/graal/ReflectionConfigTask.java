@@ -52,7 +52,7 @@ public class ReflectionConfigTask extends DefaultTask {
     public final void generateFile() throws IOException {
         List<Map<String, Object>> json = classes.get().stream()
                 .map(clazz -> {
-                    LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+                    Map<String, Object> map = new LinkedHashMap<>();
                     map.put("name", clazz);
                     map.put("allDeclaredConstructors", true);
                     map.put("allPublicConstructors", true);

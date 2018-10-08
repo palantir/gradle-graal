@@ -141,6 +141,11 @@ public class NativeImageTask extends DefaultTask {
     }
 
     @Input
+    public final Provider<String> getOutputName() {
+        return outputName;
+    }
+
+    @Input
     public final Provider<String> getGraalVersion() {
         return graalVersion;
     }
