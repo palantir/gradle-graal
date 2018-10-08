@@ -82,6 +82,9 @@ public class GradleGraalPlugin implements Plugin<Project> {
                 task -> {
                     task.add("java.util.ArrayList");
                     task.add("java.util.Optional");
+                    task.setFile(project.getLayout().getBuildDirectory()
+                            .dir("graal")
+                            .map(d -> d.file("reflectconfig.json")));
                 });
 
         TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");

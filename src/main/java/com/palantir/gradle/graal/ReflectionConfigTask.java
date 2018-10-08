@@ -27,6 +27,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -34,6 +35,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
+// TODO(dfox): make this read files containing class names
 public class ReflectionConfigTask extends DefaultTask {
 
     private final RegularFileProperty file = newOutputFile();
@@ -43,7 +45,6 @@ public class ReflectionConfigTask extends DefaultTask {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Generates a reflectconfig.json file based on supplied class names");
 
-        file.set(new File(getProject().getBuildDir(), "graal/reflectconfig.json"));
         onlyIf(t -> classes.isPresent() && !classes.get().isEmpty());
     }
 
@@ -77,8 +78,12 @@ public class ReflectionConfigTask extends DefaultTask {
         return file;
     }
 
-    public final void setFile(File file) {
-        this.file.set(file);
+    public final void setFile(File value) {
+        file.set(value);
+    }
+
+    public final void setFile(Provider<RegularFile> regularFileProvider) {
+        file.set(regularFileProvider);
     }
 
     public final void add(String string) {

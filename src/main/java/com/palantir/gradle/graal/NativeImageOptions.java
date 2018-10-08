@@ -51,6 +51,8 @@ public final class NativeImageOptions implements Serializable {
         list.add(option);
     }
 
+    // TODO(dfox): make the incremental behaviour here understand when a file has changed or not
+
     public Provider<List<String>> getProvider() {
         return list.map(providers -> providers.stream().flatMap(object -> {
 
