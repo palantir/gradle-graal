@@ -18,6 +18,7 @@ package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import okhttp3.mockwebserver.MockResponse
 
 class GradleGraalEndToEndSpec extends IntegrationSpec {
 
@@ -76,5 +77,104 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         println result3.standardOutput
         !result3.wasUpToDate(':nativeImage')
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
+    }
+
+    def 'allows specifying additional properties'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+       
+        import java.io.IOException;
+        import java.net.URL;
+        
+        public final class Main {
+          public static final void main(String[] args) {
+            String result = null;
+            try {
+              result = convertStreamToString(new URL("http://www.google.com/").openStream());
+              System.out.println(result);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+        
+          }
+        
+          static String convertStreamToString(java.io.InputStream is) {
+            java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\\\A");
+            return s.hasNext() ? s.next() : "";
+          }
+        }
+        '''
+        buildFile << '''
+            apply plugin: 'com.palantir.graal'
+    
+            graal {
+                mainClass 'com.palantir.test.Main'
+                outputName 'hello-world'
+                graalVersion '1.0.0-rc5'
+                option '-H:EnableURLProtocols=http'
+            }
+        '''
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+        File output = new File(getProjectDir(), "build/graal/hello-world");
+
+        then:
+        output.exists()
+        output.getAbsolutePath().execute().text.toLowerCase().contains("<html")
+    }
+
+
+    def 'should not allow to add -H:Name'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+       
+        import java.io.IOException;
+        import java.net.URL;
+        
+        public final class Main {
+          public static final void main(String[] args) {
+            String result = null;
+            try {
+              result = convertStreamToString(new URL("http://www.google.com/").openStream());
+              System.out.println(result);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+        
+          }
+        
+          static String convertStreamToString(java.io.InputStream is) {
+            java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\\\A");
+            return s.hasNext() ? s.next() : "";
+          }
+        }
+        '''
+        buildFile << '''
+            apply plugin: 'com.palantir.graal'
+    
+            graal {
+                mainClass 'com.palantir.test.Main'
+                outputName 'hello-world'
+                graalVersion '1.0.0-rc5'
+                option '-H:EnableURLProtocols=http'
+                option '-H:Name=foo'
+            }
+        '''
+
+        when:
+        ExecutionResult result = runTasksWithFailure('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+
+
+        then:
+        result.standardOutput.contains("Use 'outputName' instead of")
     }
 }

@@ -16,7 +16,9 @@
 
 package com.palantir.gradle.graal;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
@@ -30,12 +32,14 @@ public class GraalExtension {
     private final Property<String> graalVersion;
     private final Property<String> mainClass;
     private final Property<String> outputName;
+    private final ListProperty<String> options;
 
     public GraalExtension(Project project) {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
+        options = project.getObjects().listProperty(String.class);
 
         // defaults
         downloadBaseUrl.set(DEFAULT_DOWNLOAD_BASE_URL);
@@ -88,6 +92,22 @@ public class GraalExtension {
      */
     public final Provider<String> getGraalVersion() {
         return graalVersion;
+    }
+
+
+    public final ListProperty<String> getOptions() {
+      return this.options;
+    }
+
+  /**
+   * Add option from https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md
+   * @param option
+   */
+  public final void option(String option) {
+      if(option.trim().startsWith("-H:Name=")){
+          throw new GradleException("Use 'outputName' instead of '" + option + "'");
+      }
+      this.options.add(option);
     }
 
 }
