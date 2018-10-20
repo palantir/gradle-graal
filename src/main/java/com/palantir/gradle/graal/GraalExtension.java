@@ -96,18 +96,17 @@ public class GraalExtension {
 
 
     public final ListProperty<String> getOptions() {
-      return this.options;
+        return this.options;
     }
 
-  /**
-   * Add option from https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md
-   * @param option
-   */
-  public final void option(String option) {
-      if(option.trim().startsWith("-H:Name=")){
-          throw new GradleException("Use 'outputName' instead of '" + option + "'");
-      }
-      this.options.add(option);
+    /**
+     * Add option from https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md.
+     */
+    public final void option(String option) {
+        if (option.trim().startsWith("-H:Name=")) {
+            throw new GradleException("Use 'outputName' instead of '" + option + "'");
+        }
+        this.options.add(option);
     }
 
 }

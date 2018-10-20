@@ -76,9 +76,9 @@ public class NativeImageTask extends DefaultTask {
         if (outputName.isPresent()) {
             args.add("-H:Name=" + outputName.get());
         }
-        if(options.isPresent()){
-          List<String> optionList = options.get();
-          args.addAll(optionList);
+        if (options.isPresent()) {
+            List<String> optionList = options.get();
+            args.addAll(optionList);
         }
 
         args.add(mainClass.get());
@@ -184,7 +184,7 @@ public class NativeImageTask extends DefaultTask {
         cacheDir.set(value);
     }
 
-    public void setOptions(ListProperty<String> options) {
+    public final void setOptions(ListProperty<String> options) {
         this.options.set(options);
     }
 }
