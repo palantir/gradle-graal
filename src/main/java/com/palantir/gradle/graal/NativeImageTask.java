@@ -30,6 +30,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
@@ -45,6 +46,7 @@ public class NativeImageTask extends DefaultTask {
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = newInputFile();
     private final RegularFileProperty outputFile = newOutputFile();
@@ -74,6 +76,11 @@ public class NativeImageTask extends DefaultTask {
         if (outputName.isPresent()) {
             args.add("-H:Name=" + outputName.get());
         }
+        if (options.isPresent()) {
+            List<String> optionList = options.get();
+            args.addAll(optionList);
+        }
+
         args.add(mainClass.get());
 
         getProject().exec(spec -> {
@@ -175,5 +182,9 @@ public class NativeImageTask extends DefaultTask {
 
     final void setCacheDir(Path value) {
         cacheDir.set(value);
+    }
+
+    public final void setOptions(ListProperty<String> options) {
+        this.options.set(options);
     }
 }

@@ -87,6 +87,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
                     task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
                     task.setCacheDir(cacheDir);
+                    task.setOptions(extension.getOptions());
                     task.dependsOn(extractGraal);
                     task.dependsOn(jar);
                 });

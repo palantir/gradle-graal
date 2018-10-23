@@ -22,6 +22,7 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
 **`native-image` controls**
 * `outputName`: the name to use for the image output
 * `mainClass`: the main class entry-point for the image to run
+* `option`: additional native-image options `https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md`
 
 Local GraalVM Tooling Cache
 ---------------------------
