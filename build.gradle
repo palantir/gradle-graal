@@ -80,12 +80,6 @@ configurations.errorprone {
     }
 }
 
-tasks.withType(JavaCompile) {
-    options.compilerArgs += [
-        '-Xep:Slf4jLogsafeArgs:OFF',
-    ]
-}
-
 gradlePlugin {
     // do not add new task to publish to plugins.gradle.org
     automatedPublishing = false
