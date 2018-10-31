@@ -24,12 +24,9 @@ buildscript {
     dependencies {
         classpath 'com.gradle.publish:plugin-publish-plugin:0.10.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'com.netflix.nebula:nebula-dependency-recommender:6.0.0'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:0.26.1'
-        classpath 'com.palantir.configurationresolver:gradle-configuration-resolver-plugin:0.3.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:0.37.4'
         classpath 'gradle.plugin.com.palantir.gradle.gitversion:gradle-git-version:0.7.3'
-        classpath 'gradle.plugin.com.palantir:gradle-circle-style:1.1.2'
         classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.16'
     }
 }
@@ -43,10 +40,7 @@ repositories {
 
 apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'com.palantir.baseline'
-apply plugin: 'com.palantir.configuration-resolver'
 apply plugin: 'com.palantir.git-version'
-apply plugin: 'com.palantir.circle.style'
-apply plugin: 'nebula.dependency-recommender'
 apply plugin: 'nebula.maven-publish'
 apply plugin: 'nebula.source-jar'
 apply plugin: 'org.inferred.processors'
@@ -67,7 +61,6 @@ dependencies {
     testCompile 'com.netflix.nebula:nebula-test'
     testCompile 'com.squareup.okhttp3:mockwebserver'
 
-    baseline 'com.palantir.baseline:gradle-baseline-java-config:0.26.1@zip'
 }
 
 dependencyRecommendations {
