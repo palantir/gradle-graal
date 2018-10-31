@@ -74,12 +74,6 @@ configurations.all {
     }
 }
 
-configurations.errorprone {
-    resolutionStrategy {
-        force 'com.google.guava:guava:21.0'
-    }
-}
-
 gradlePlugin {
     // do not add new task to publish to plugins.gradle.org
     automatedPublishing = false
