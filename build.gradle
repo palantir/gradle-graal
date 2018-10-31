@@ -27,7 +27,7 @@ buildscript {
         classpath 'com.netflix.nebula:nebula-publishing-plugin:8.2.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:0.37.4'
         classpath 'gradle.plugin.com.palantir.gradle.gitversion:gradle-git-version:0.7.3'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:1.2.16'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:2.0.0'
     }
 }
 
@@ -78,12 +78,6 @@ configurations.errorprone {
     resolutionStrategy {
         force 'com.google.guava:guava:21.0'
     }
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs += [
-        '-Xep:Slf4jLogsafeArgs:OFF',
-    ]
 }
 
 gradlePlugin {
