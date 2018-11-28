@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
@@ -39,7 +40,7 @@ public class GraalExtension {
         graalVersion = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
-        options = project.getObjects().listProperty(String.class);
+        options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
 
         // defaults
         downloadBaseUrl.set(DEFAULT_DOWNLOAD_BASE_URL);
@@ -95,7 +96,7 @@ public class GraalExtension {
     }
 
 
-    public final ListProperty<String> getOptions() {
+    public final Provider<List<String>> getOptions() {
         return this.options;
     }
 
