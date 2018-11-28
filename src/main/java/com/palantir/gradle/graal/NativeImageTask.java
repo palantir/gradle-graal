@@ -26,7 +26,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
@@ -60,11 +62,8 @@ public class NativeImageTask extends DefaultTask {
                 .dir("graal")
                 .map(d -> d.file(outputName.get())));
 
-        doLast(t -> {
-            getLogger().warn("native-image available at {} ({}MB)",
-                    getProject().relativePath(outputFile.get().getAsFile()),
-                    fileSizeMegabytes(outputFile.get()));
-        });
+        // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
+        doLast(new LogAction());
     }
 
     @TaskAction
@@ -184,7 +183,16 @@ public class NativeImageTask extends DefaultTask {
         cacheDir.set(value);
     }
 
-    public final void setOptions(ListProperty<String> options) {
+    public final void setOptions(Provider<List<String>> options) {
         this.options.set(options);
+    }
+
+    private class LogAction implements Action<Task> {
+        @Override
+        public void execute(Task task) {
+            getLogger().warn("native-image available at {} ({}MB)",
+                    getProject().relativePath(outputFile.get().getAsFile()),
+                    fileSizeMegabytes(outputFile.get()));
+        }
     }
 }
