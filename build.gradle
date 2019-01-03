@@ -60,7 +60,6 @@ dependencies {
     testCompile gradleTestKit()
     testCompile 'com.netflix.nebula:nebula-test'
     testCompile 'com.squareup.okhttp3:mockwebserver'
-
 }
 
 dependencyRecommendations {

@@ -48,7 +48,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        File output = new File(getProjectDir(), "build/graal/hello-world")
 
         then:
         output.exists()
@@ -116,7 +116,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasks('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        File output = new File(getProjectDir(), "build/graal/hello-world")
 
         then:
         output.exists()
@@ -143,5 +143,31 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
         then:
         result.standardOutput.contains("Use 'outputName' instead of")
+    }
+
+    def 'can build shared libraries'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+
+        public final class Main {}
+        '''
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        graal {
+            outputName 'hello-world'
+            graalVersion '1.0.0-rc5'
+            option '--shared'
+        }
+        '''
+
+        when:
+        runTasksSuccessfully('nativeImage')
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world.dylib")
+
+        then:
+        dylibFile.exists()
     }
 }

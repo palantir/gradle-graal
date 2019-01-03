@@ -39,12 +39,14 @@ import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 /** Runs GraalVM's native-image command with configured options and parameters. */
 public class NativeImageTask extends DefaultTask {
 
+    @Optional
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
@@ -80,7 +82,10 @@ public class NativeImageTask extends DefaultTask {
             args.addAll(optionList);
         }
 
-        args.add(mainClass.get());
+        if (mainClass.isPresent()) {
+            // omit main class when building a shared library
+            args.add(mainClass.get());
+        }
 
         getProject().exec(spec -> {
             spec.executable(getExecutable());
@@ -120,21 +125,13 @@ public class NativeImageTask extends DefaultTask {
         }
     }
 
-    private long fileSizeMegabytes(RegularFile regularFile) {
-        try {
-            return Files.size(regularFile.getAsFile().toPath()) / (1000 * 1000);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     @Input
     public final Provider<String> getMainClass() {
         return mainClass;
     }
 
     public final void setMainClass(Provider<String> provider) {
-        mainClass.set(provider);
+        mainClass.set(provider.getOrNull());
     }
 
     @Input
@@ -190,9 +187,7 @@ public class NativeImageTask extends DefaultTask {
     private class LogAction implements Action<Task> {
         @Override
         public void execute(Task task) {
-            getLogger().warn("native-image available at {} ({}MB)",
-                    getProject().relativePath(outputFile.get().getAsFile()),
-                    fileSizeMegabytes(outputFile.get()));
+            getLogger().warn("native-image available at {}", getProject().relativePath(outputFile.get().getAsFile()));
         }
     }
 }
