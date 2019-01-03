@@ -165,7 +165,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
         when:
         runTasksSuccessfully('nativeImage')
-        File dylibFile = new File(getProjectDir(), "build/graal/hello-world.dylib")
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world.so")
 
         then:
         dylibFile.exists()
