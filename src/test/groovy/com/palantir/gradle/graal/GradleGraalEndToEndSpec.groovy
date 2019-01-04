@@ -16,6 +16,9 @@
 
 package com.palantir.gradle.graal
 
+import static com.palantir.gradle.graal.Platform.OperatingSystem.LINUX
+import static com.palantir.gradle.graal.Platform.OperatingSystem.MAC
+
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 
@@ -45,7 +48,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         '''
 
         when:
-        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        ExecutionResult result = runTasksSuccessfully('nativeImage')
+        // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
         File output = new File(getProjectDir(), "build/graal/hello-world")
@@ -113,7 +117,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         '''
 
         when:
-        ExecutionResult result = runTasks('nativeImage') // note, this accesses your real ~/.gradle cache
+        ExecutionResult result = runTasks('nativeImage')
+        // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
         File output = new File(getProjectDir(), "build/graal/hello-world")
@@ -137,7 +142,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         '''
 
         when:
-        ExecutionResult result = runTasksWithFailure('nativeImage') // note, this accesses your real ~/.gradle cache
+        ExecutionResult result = runTasksWithFailure('nativeImage')
+        // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
 
@@ -165,9 +171,20 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
         when:
         runTasksSuccessfully('nativeImage')
-        File dylibFile = new File(getProjectDir(), "build/graal/hello-world.so")
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world." + getSharedLibPrefixByOs())
 
         then:
         dylibFile.exists()
+    }
+
+    def getSharedLibPrefixByOs() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+                return "dylib"
+            case LINUX:
+                return "so"
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem())
+        }
     }
 }
