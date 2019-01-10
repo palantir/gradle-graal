@@ -142,6 +142,6 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         println "Gradle Standard Error:\n" + result.standardError
 
         then:
-        result.standardOutput.contains("Use 'outputName' instead of")
+        result.standardError.contains("Use 'outputName' instead of")
     }
 }
