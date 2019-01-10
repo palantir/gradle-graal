@@ -32,9 +32,9 @@ import org.gradle.api.tasks.TaskAction;
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
 
-    private final RegularFileProperty inputTgz = newInputFile();
+    private final RegularFileProperty inputTgz = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
-    private final DirectoryProperty outputDirectory = newOutputDirectory();
+    private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public ExtractGraalTask() {
