@@ -50,8 +50,8 @@ public class NativeImageTask extends DefaultTask {
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
-    private final RegularFileProperty jarFile = newInputFile();
-    private final RegularFileProperty outputFile = newOutputFile();
+    private final RegularFileProperty jarFile = getProject().getObjects().fileProperty();
+    private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public NativeImageTask() {
