@@ -11,6 +11,9 @@ Gradle Tasks
 `./gradlew nativeImage`: create a native image using GraalVM's `native-image` tool with the configuration as specified
 by the `graal` Gradle extension. Outputs are produced to `${projectDir}/build/graal/`.
 
+`./gradlew sharedLibary`: * `sharedLibrary`: runs GraalVM's `native-image` for `shared library` command with configured 
+options and parameters. Outputs are produced to `${projectDir}/build/graal/`.
+
 Configuration
 -------------
 Configure this plugin and its wrappers around GraalVM tools through the `graal` extension with the following options:
@@ -18,6 +21,7 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
 **General GraalVM controls**
 * `graalVersion`: the version string to use when downloading GraalVM (defaults to `1.0.0-rc12`)
 * `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/oracle/graal/releases/download/`)
+
 
 **`native-image` controls**
 * `outputName`: the name to use for the image output
