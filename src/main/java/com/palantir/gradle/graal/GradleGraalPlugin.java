@@ -91,5 +91,20 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.dependsOn(extractGraal);
                     task.dependsOn(jar);
                 });
+
+        TaskProvider<Jar> sharedLibrary = project.getTasks().withType(Jar.class).named("jar");
+        project.getTasks().register(
+                "sharedLibrary",
+                SharedLibraryTask.class,
+                task -> {
+                    task.setOutputName(extension.getOutputName());
+                    task.setGraalVersion(extension.getGraalVersion());
+                    task.setJarFile(sharedLibrary.map(j -> j.getOutputs().getFiles().getSingleFile()));
+                    task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+                    task.setCacheDir(cacheDir);
+                    task.setOptions(extension.getOptions());
+                    task.dependsOn(extractGraal);
+                    task.dependsOn(sharedLibrary);
+                });
     }
 }

@@ -18,6 +18,8 @@ package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import static com.palantir.gradle.graal.Platform.OperatingSystem.LINUX
+import static com.palantir.gradle.graal.Platform.OperatingSystem.MAC
 
 class GradleGraalEndToEndSpec extends IntegrationSpec {
 
@@ -121,6 +123,41 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         output.exists()
         output.getAbsolutePath().execute().text.toLowerCase().contains("<html")
+    }
+
+
+    def 'can build shared libraries'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+        public final class Main {}
+        '''
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+        graal {
+            outputName 'hello-world'
+            graalVersion '1.0.0-rc5'
+        }
+        '''
+
+        when:
+        runTasksSuccessfully('sharedLibrary')
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world." + getSharedLibPrefixByOs())
+
+        then:
+        dylibFile.exists()
+    }
+
+    def getSharedLibPrefixByOs() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+                return "dylib"
+            case LINUX:
+                return "so"
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem())
+        }
     }
 
     def 'should not allow to add -H:Name'() {
