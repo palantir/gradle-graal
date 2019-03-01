@@ -43,8 +43,8 @@ public class NativeImageTask extends BaseGraalCompileTask {
 
     @TaskAction
     public final void nativeImage() throws IOException {
-        List<String> args = new ArrayList<>();
-        loadArgs(args);
+        final List<String> args = new ArrayList<>();
+        configureArgs(args);
         args.add(mainClass.get());
         getProject().exec(spec -> {
             spec.executable(getExecutable());

@@ -160,6 +160,26 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         }
     }
 
+    def 'should not allow empty mainClass on nativeImage'() {
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        graal {            
+            outputName 'hello-world'
+            graalVersion '1.0.0-rc5'
+            option '-H:EnableURLProtocols=http'            
+        }
+        '''
+
+        when:
+        ExecutionResult result = runTasksWithFailure('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+
+        then:
+        result.standardError.contains("No value has been specified for property 'mainClass'")
+    }
+
     def 'should not allow to add -H:Name'() {
         buildFile << '''
         apply plugin: 'com.palantir.graal'

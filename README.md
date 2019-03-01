@@ -11,8 +11,8 @@ Gradle Tasks
 `./gradlew nativeImage`: create a native image using GraalVM's `native-image` tool with the configuration as specified
 by the `graal` Gradle extension. Outputs are produced to `${projectDir}/build/graal/`.
 
-`./gradlew sharedLibary`: * `sharedLibrary`: runs GraalVM's `native-image` for `shared library` command with configured 
-options and parameters. Outputs are produced to `${projectDir}/build/graal/`.
+`./gradlew sharedLibary`: create a shared library using GraalVM's `native-image` tool with the configuration as specified
+by the `graal` Gradle extension. Outputs are produced to `${projectDir}/build/graal/`.
 
 Configuration
 -------------

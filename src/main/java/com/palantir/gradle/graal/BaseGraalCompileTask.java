@@ -53,8 +53,6 @@ public class BaseGraalCompileTask extends DefaultTask {
         this.outputFile.set(getProject().getLayout().getBuildDirectory()
                 .dir("graal")
                 .map(d -> d.file(outputName.get())));
-
-
     }
 
     protected final File maybeCreateOutputDirectory() throws IOException {
@@ -71,7 +69,12 @@ public class BaseGraalCompileTask extends DefaultTask {
                 .getAbsolutePath();
     }
 
-    protected final void loadArgs(List<String> args) throws IOException {
+    /**
+     * Adds all graal vm command line args into the specified args list.
+     * @param args The list where all the command line args are going to be loaded
+     * @throws IOException If any problem while creating output directory
+     */
+    protected final void configureArgs(List<String> args) throws IOException {
         args.add("-cp");
         args.add(generateClasspathArgument());
         args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
