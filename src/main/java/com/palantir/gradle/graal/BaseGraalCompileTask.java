@@ -78,12 +78,15 @@ public class BaseGraalCompileTask extends DefaultTask {
         args.add("-cp");
         args.add(generateClasspathArgument());
         args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
-        if (outputName.isPresent()) {
-            args.add("-H:Name=" + outputName.get());
-        }
         if (options.isPresent()) {
             List<String> optionList = options.get();
             args.addAll(optionList);
+        }
+        // Set H:Name after all other options in order to override other H:Name
+        // options that were expanded from macro options above. See
+        // https://github.com/oracle/graal/issues/1032
+        if (outputName.isPresent()) {
+            args.add("-H:Name=" + outputName.get());
         }
     }
 
