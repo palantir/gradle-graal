@@ -19,7 +19,7 @@ Configuration
 Configure this plugin and its wrappers around GraalVM tools through the `graal` extension with the following options:
 
 **General GraalVM controls**
-* `graalVersion`: the version string to use when downloading GraalVM (defaults to `1.0.0-rc12`)
+* `graalVersion`: the version string to use when downloading GraalVM (defaults to `1.0.0-rc13`)
 * `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/oracle/graal/releases/download/`)
 
 
