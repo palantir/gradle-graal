@@ -1,5 +1,5 @@
 com.netflix.nebula:nebula-test = 7.1.9
-com.squareup.okhttp3:* = 3.13.1
+com.squareup.okhttp3:* = 3.14.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
