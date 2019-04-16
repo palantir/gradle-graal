@@ -1,4 +1,4 @@
-com.netflix.nebula:nebula-test = 7.2.3
+com.netflix.nebula:nebula-test = 7.2.4
 com.squareup.okhttp3:* = 3.14.1
 
 # conflict resolution
