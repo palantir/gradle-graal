@@ -33,8 +33,11 @@ import org.gradle.api.tasks.TaskAction;
 /** Downloads GraalVM binaries. */
 public class DownloadGraalTask extends DefaultTask {
 
-    private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
-    private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_RC_VERSION = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_RELEASE_VERSION = "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].tar.gz";
+    
+    private static final String FILENAME_PATTERN_RC_VERSION = "graalvm-ce-[version]-[arch].tar.gz";
+    private static final String FILENAME_PATTERN_RELEASE_VERSION = "graalvm-ce-[os]-[arch]-[version].tar.gz";
 
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
@@ -51,15 +54,22 @@ public class DownloadGraalTask extends DefaultTask {
     public final void downloadGraal() throws IOException {
         Path cache = getCacheSubdirectory().get();
         Files.createDirectories(cache);
-        try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
+        
+        final String artefactPattern = isGraalRcVersion() ? 
+            ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
+        
+        try (InputStream in = new URL(render(artefactPattern)).openStream()) {
             Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     @OutputFile
     public final Provider<RegularFile> getTgz() {
+        final String filenamePattern = isGraalRcVersion() ? 
+            FILENAME_PATTERN_RC_VERSION : FILENAME_PATTERN_RELEASE_VERSION;
+        
         return getProject().getLayout()
-                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
+                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(filenamePattern)).toFile()));
     }
 
     @Input
@@ -95,7 +105,7 @@ public class DownloadGraalTask extends DefaultTask {
     private String getOperatingSystem() {
         switch (Platform.operatingSystem()) {
             case MAC:
-                return "macos";
+                return isGraalRcVersion() ? "macos" : "darwin";
             case LINUX:
                 return "linux";
             default:
@@ -110,6 +120,10 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
+    }
+    
+    private boolean isGraalRcVersion() {
+        return graalVersion.get().startsWith("1.0.0-rc");
     }
 
     final void setCacheDir(Path value) {
