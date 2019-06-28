@@ -44,7 +44,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         file('gradle.properties') << "com.palantir.graal.cache.dir=${getProjectDir().toPath().resolve("cacheDir").toAbsolutePath()}"
     }
 
-    def 'allows specifying different graal version'() {
+    def 'allows specifying different RC graal version'() {
         setup:
         buildFile << """
             apply plugin: 'com.palantir.graal'
@@ -69,6 +69,33 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
 
         file("cacheDir/1.0.0-rc3/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
+    }
+
+    def 'allows specifying different GA graal version'() {
+        setup:
+        buildFile << """
+            apply plugin: 'com.palantir.graal'
+
+            graal {
+               graalVersion '19.0.0'
+               downloadBaseUrl '${fakeBaseUrl}'
+            }
+        """
+        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
+
+        then:
+        println result.getStandardOutput()
+        result.wasExecuted(':downloadGraalTooling')
+        !result.wasUpToDate(':downloadGraalTooling')
+        !result.wasSkipped(':downloadGraalTooling')
+
+        server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
+                "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
+
+        file("cacheDir/19.0.0/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
