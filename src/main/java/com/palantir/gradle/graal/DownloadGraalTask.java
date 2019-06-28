@@ -33,7 +33,11 @@ import org.gradle.api.tasks.TaskAction;
 /** Downloads GraalVM binaries. */
 public class DownloadGraalTask extends DefaultTask {
 
-    private static final String ARTIFACT_PATTERN = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_RC_VERSION
+            = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_RELEASE_VERSION
+            = "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].tar.gz";
+
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
 
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
@@ -51,7 +55,11 @@ public class DownloadGraalTask extends DefaultTask {
     public final void downloadGraal() throws IOException {
         Path cache = getCacheSubdirectory().get();
         Files.createDirectories(cache);
-        try (InputStream in = new URL(render(ARTIFACT_PATTERN)).openStream()) {
+
+        final String artifactPattern = isGraalRcVersion()
+                ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
+
+        try (InputStream in = new URL(render(artifactPattern)).openStream()) {
             Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
@@ -95,7 +103,7 @@ public class DownloadGraalTask extends DefaultTask {
     private String getOperatingSystem() {
         switch (Platform.operatingSystem()) {
             case MAC:
-                return "macos";
+                return isGraalRcVersion() ? "macos" : "darwin";
             case LINUX:
                 return "linux";
             default:
@@ -110,6 +118,10 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }
+    }
+
+    private boolean isGraalRcVersion() {
+        return graalVersion.get().startsWith("1.0.0-rc");
     }
 
     final void setCacheDir(Path value) {
