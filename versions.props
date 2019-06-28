@@ -1,6 +1,6 @@
 com.google.guava:guava = 27.0.1-jre
 com.netflix.nebula:nebula-test = 7.2.5
-com.squareup.okhttp3:* = 3.14.1
+com.squareup.okhttp3:* = 4.0.0
 
 # conflict resolution
 com.google.code.findbugs:jsr305 = 3.0.2
