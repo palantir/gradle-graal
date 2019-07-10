@@ -20,6 +20,7 @@ import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import static com.palantir.gradle.graal.Platform.OperatingSystem.LINUX
 import static com.palantir.gradle.graal.Platform.OperatingSystem.MAC
+import static com.palantir.gradle.graal.Platform.OperatingSystem.WINDOWS
 
 class GradleGraalEndToEndSpec extends IntegrationSpec {
 
@@ -49,11 +50,15 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        def outputPath = "build/graal/hello-world"
+        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath);
 
         then:
         output.exists()
-        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+        output.getAbsolutePath().execute().text.equals("hello, world!" + System.lineSeparator())
 
         when:
         ExecutionResult result2 = runTasksSuccessfully('nativeImage')
@@ -98,7 +103,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         graal {
             mainClass 'com.palantir.test.Main'
             outputName 'hello-world'
-            graalVersion '1.0.0-rc5'
+            graalVersion '19.1.0'
         }
         '''
 
@@ -106,11 +111,15 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        def outputPath = "build/graal/hello-world"
+        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath);
 
         then:
         output.exists()
-        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+        output.getAbsolutePath().execute().text.equals("hello, world!" + System.lineSeparator())
 
         when:
         ExecutionResult result2 = runTasksSuccessfully('nativeImage')
@@ -133,7 +142,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         println result3.standardOutput
         !result3.wasUpToDate(':nativeImage')
-        output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
     def 'allows specifying additional properties'() {
@@ -164,7 +173,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         graal {
             mainClass 'com.palantir.test.Main'
             outputName 'hello-world'
-            graalVersion '1.0.0-rc5'
+            graalVersion '19.1.0'
             // By default, only file:// is supported, see https://github.com/oracle/graal/blob/master/substratevm/URL-PROTOCOLS.md
             option '-H:EnableURLProtocols=http'
         }
@@ -174,7 +183,11 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasks('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        def outputPath = "build/graal/hello-world"
+        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath);
 
         then:
         output.exists()
@@ -214,7 +227,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         apply plugin: 'com.palantir.graal'
         graal {
             outputName 'hello-world'
-            graalVersion '1.0.0-rc5'
+            graalVersion '19.1.0'
         }
         '''
 
@@ -232,6 +245,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
                 return "dylib"
             case LINUX:
                 return "so"
+            case WINDOWS:
+                return "dll"
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem())
         }
@@ -243,7 +258,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
 
         graal {            
             outputName 'hello-world'
-            graalVersion '1.0.0-rc5'
+            graalVersion '19.1.0'
             option '-H:EnableURLProtocols=http'            
         }
         '''
@@ -264,7 +279,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         graal {
             mainClass 'com.palantir.test.Main'
             outputName 'hello-world'
-            graalVersion '1.0.0-rc5'
+            graalVersion '19.1.0'
             option '-H:EnableURLProtocols=http'
             option '-H:Name=foo'
         }
