@@ -53,7 +53,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
 
         Path cacheDir = Optional.ofNullable((String) project.findProperty("com.palantir.graal.cache.dir"))
                 .map(Paths::get)
-                .orElse(project.getGradle().getGradleUserHomeDir().toPath()
+                .orElseGet(() -> project.getGradle().getGradleUserHomeDir().toPath()
                         .resolve("caches")
                         .resolve("com.palantir.graal"));
 
