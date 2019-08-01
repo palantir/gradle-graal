@@ -1,3 +1,7 @@
+<p align="right">
+<a href="https://autorelease.general.dmz.palantir.tech/palantir/gradle-graal"><img src="https://img.shields.io/badge/Perform%20an-Autorelease-success.svg" alt="Autorelease"></a>
+</p>
+
 gradle-graal
 ------------
 A simple wrapper around GraalVM tooling that will download and locally cache a GraalVM installation and make
