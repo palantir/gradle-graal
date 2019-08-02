@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,7 +55,7 @@ public class ExtractGraalTask extends DefaultTask {
     @TaskAction
     public final void extractGraal() {
         if (!graalVersion.isPresent()) {
-            throw new IllegalStateException("extract task requires graal.graalVersion to be defined.");
+            throw new SafeIllegalStateException("extract task requires graal.graalVersion to be defined.");
         }
 
         // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
