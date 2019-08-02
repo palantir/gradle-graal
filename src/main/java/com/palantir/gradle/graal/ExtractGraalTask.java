@@ -19,7 +19,6 @@ package com.palantir.gradle.graal;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
