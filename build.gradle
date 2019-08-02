@@ -56,6 +56,7 @@ version gitVersion()
 dependencies {
     compile localGroovy()
     compile gradleApi()
+    compile 'com.palantir.safe-logging:preconditions'
 
     testCompile gradleTestKit()
     testCompile 'com.netflix.nebula:nebula-test'
