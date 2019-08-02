@@ -16,7 +16,9 @@
 
 package com.palantir.gradle.graal;
 
+import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -61,6 +63,33 @@ public class ExtractGraalTask extends DefaultTask {
             spec.args("-xzf", inputTgz.get().getAsFile().getAbsolutePath());
             spec.workingDir(cacheDir.get().resolve(graalVersion.get()));
         });
+        File nativeImageExecutable = getExecutable("native-image");
+        if (!nativeImageExecutable.isFile()) {
+            getProject().exec(spec -> {
+                File graalUpdateExecutable = getExecutable("gu");
+                if (!graalUpdateExecutable.isFile()) {
+                    throw new IllegalStateException("Failed to find Graal update binary: " + graalUpdateExecutable);
+                }
+                spec.executable(graalUpdateExecutable.getAbsolutePath());
+                spec.args("install", "native-image");
+            });
+        }
+    }
+
+    private File getExecutable(String binaryName) {
+        return cacheDir.get()
+                .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
+                .resolve(getArchitectureSpecifiedBinaryPath(binaryName))
+                .toFile();
+    }
+
+    private Path getArchitectureSpecifiedBinaryPath(String binaryName) {
+        switch (Platform.operatingSystem()) {
+            case MAC: return Paths.get("Contents", "Home", "bin", binaryName);
+            case LINUX: return Paths.get("bin", binaryName);
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        }
     }
 
     @InputFile

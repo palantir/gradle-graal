@@ -28,7 +28,63 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         directory("src/main/java/com/palantir/test")
         file("src/main/java/com/palantir/test/Main.java") << '''
         package com.palantir.test;
-       
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world!");
+            }
+        }
+        '''
+
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        graal {
+            mainClass 'com.palantir.test.Main'
+            outputName 'hello-world'
+        }
+        '''
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+        File output = new File(getProjectDir(), "build/graal/hello-world");
+
+        then:
+        output.exists()
+        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+
+        when:
+        ExecutionResult result2 = runTasksSuccessfully('nativeImage')
+
+        then:
+        result2.wasUpToDate(':nativeImage')
+
+        when:
+        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java").text = '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world (modified)!");
+            }
+        }
+        '''
+        ExecutionResult result3 = runTasksSuccessfully('nativeImage')
+
+        then:
+        println result3.standardOutput
+        !result3.wasUpToDate(':nativeImage')
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
+    }
+
+    def 'test 1.0.0-rc5 nativeImage'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+
         public final class Main {
             public static final void main(String[] args) {
                 System.out.println("hello, world!");
@@ -65,7 +121,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         when:
         new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java").text = '''
         package com.palantir.test;
-        
+
         public final class Main {
             public static final void main(String[] args) {
                 System.out.println("hello, world (modified)!");
@@ -85,10 +141,10 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         directory("src/main/java/com/palantir/test")
         file("src/main/java/com/palantir/test/Main.java") << '''
         package com.palantir.test;
-       
+
         import java.io.IOException;
         import java.net.URL;
-        
+
         public final class Main {
           public static final void main(String[] args) throws IOException {
             String result = convertStreamToString(new URL("http://www.google.com/").openStream());
@@ -125,8 +181,29 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.toLowerCase().contains("<html")
     }
 
+    def 'can build shared libraries on default version'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+        public final class Main {}
+        '''
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+        graal {
+            outputName 'hello-world'
+        }
+        '''
 
-    def 'can build shared libraries'() {
+        when:
+        runTasksSuccessfully('sharedLibrary')
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world." + getSharedLibPrefixByOs())
+
+        then:
+        dylibFile.exists()
+    }
+
+    def 'can build shared libraries on 1.0.0-rc5'() {
         setup:
         directory("src/main/java/com/palantir/test")
         file("src/main/java/com/palantir/test/Main.java") << '''
