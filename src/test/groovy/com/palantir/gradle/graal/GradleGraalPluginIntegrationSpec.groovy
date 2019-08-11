@@ -60,7 +60,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
@@ -90,7 +90,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
@@ -101,9 +101,12 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         !result.wasUpToDate(':downloadGraalTooling')
         !result.wasSkipped(':downloadGraalTooling')
 
-        // requestUrl can contain "127.0.0.1" instead of "localhost"
-        server.takeRequest().requestUrl.toString() =~ "http://(localhost|127\\.0\\.0\\.1):${server.port}" +
-                "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
+        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
+        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
+        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
+        // so the comparison is only made for `path`
+        server.takeRequest().path =~
+          "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
 
         file("cacheDir/19.0.0/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
     }
@@ -119,7 +122,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<zip>>'));
+        server.enqueue(new MockResponse().setBody('<<zip>>'))
 
         when:
         ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
@@ -129,8 +132,12 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         result.wasExecuted(':downloadGraalTooling')
         !result.wasUpToDate(':downloadGraalTooling')
         !result.wasSkipped(':downloadGraalTooling')
-        // requestUrl can contain "127.0.0.1" instead of "localhost"
-        server.takeRequest().requestUrl.toString() =~ "http://(localhost|127\\.0\\.0\\.1):${server.port}" +
+
+        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
+        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
+        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
+        // so the comparison is only made for `path`
+        server.takeRequest().path =~
           "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-windows-amd64-19.0.0.zip"
 
         file("cacheDir/19.0.0/graalvm-ce-19.0.0-amd64.zip").text == '<<zip>>'
@@ -145,7 +152,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling')

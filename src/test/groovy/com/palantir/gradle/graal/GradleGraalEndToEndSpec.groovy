@@ -18,6 +18,8 @@ package com.palantir.gradle.graal
 
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
+import spock.lang.IgnoreIf
+
 import static com.palantir.gradle.graal.Platform.OperatingSystem.LINUX
 import static com.palantir.gradle.graal.Platform.OperatingSystem.MAC
 import static com.palantir.gradle.graal.Platform.OperatingSystem.WINDOWS
@@ -51,10 +53,10 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
         def outputPath = "build/graal/hello-world"
-        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+        if (Platform.operatingSystem() == WINDOWS) {
             outputPath += ".exe"
         }
-        File output = new File(getProjectDir(), outputPath);
+        File output = new File(getProjectDir(), outputPath)
 
         then:
         output.exists()
@@ -81,9 +83,11 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         println result3.standardOutput
         !result3.wasUpToDate(':nativeImage')
-        output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
+    // there is no RC version for Windows
+    @IgnoreIf({ Platform.operatingSystem() == WINDOWS })
     def 'test 1.0.0-rc5 nativeImage'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -103,7 +107,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         graal {
             mainClass 'com.palantir.test.Main'
             outputName 'hello-world'
-            graalVersion '19.1.0'
+            graalVersion '1.0.0-rc5'
         }
         '''
 
@@ -115,7 +119,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
             outputPath += ".exe"
         }
-        File output = new File(getProjectDir(), outputPath);
+        File output = new File(getProjectDir(), outputPath)
 
         then:
         output.exists()
@@ -184,10 +188,10 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
         def outputPath = "build/graal/hello-world"
-        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+        if (Platform.operatingSystem() == WINDOWS) {
             outputPath += ".exe"
         }
-        File output = new File(getProjectDir(), outputPath);
+        File output = new File(getProjectDir(), outputPath)
 
         then:
         output.exists()
@@ -216,6 +220,8 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         dylibFile.exists()
     }
 
+    // there is no RC version for Windows
+    @IgnoreIf({ Platform.operatingSystem() == WINDOWS })
     def 'can build shared libraries on 1.0.0-rc5'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -227,7 +233,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         apply plugin: 'com.palantir.graal'
         graal {
             outputName 'hello-world'
-            graalVersion '19.1.0'
+            graalVersion '1.0.0-rc5'
         }
         '''
 
