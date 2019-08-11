@@ -77,17 +77,32 @@ public class ExtractGraalTask extends DefaultTask {
         }
     }
 
+    // has some overlap with BaseGraalCompileTask#getArchitectureSpecifiedBinaryPath()
     private File getExecutable(String binaryName) {
+        String binaryExtension = "";
+
+        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
+            // most executables in the GraalVM distribution for Windows have an .exe extension
+            if (binaryName.equals("native-image") || binaryName.equals("native-image-configure")
+                    || binaryName.equals("polyglot")) {
+                binaryExtension = ".cmd";
+            } else {
+                binaryExtension = ".exe";
+            }
+        }
+
         return cacheDir.get()
                 .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
-                .resolve(getArchitectureSpecifiedBinaryPath(binaryName))
+                .resolve(getArchitectureSpecifiedBinaryPath(binaryName + binaryExtension))
                 .toFile();
     }
 
     private Path getArchitectureSpecifiedBinaryPath(String binaryName) {
         switch (Platform.operatingSystem()) {
             case MAC: return Paths.get("Contents", "Home", "bin", binaryName);
-            case LINUX: return Paths.get("bin", binaryName);
+            case LINUX:
+            case WINDOWS:
+                return Paths.get("bin", binaryName);
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
