@@ -230,7 +230,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
 
     /*
      This regex basically means:
-     - from the start (^), find the first occurence of "REG_" after some other stuff (.+?, + = one or more, ? = lazy)
+     - from the start (^), find the first occurrence of "REG_" after some other stuff (.+?, + = one or more, ? = lazy)
      - keep going as long it's not whitespace (\S)
      - hop over all the whitespace (\s)
      - read the rest of the line until the end ($) into group 1 (the parens)
