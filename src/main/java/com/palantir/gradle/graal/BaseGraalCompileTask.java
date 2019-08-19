@@ -42,7 +42,6 @@ import org.gradle.api.tasks.OutputFile;
 public class BaseGraalCompileTask extends DefaultTask {
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
-    private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = getProject().getObjects().fileProperty();
@@ -50,9 +49,6 @@ public class BaseGraalCompileTask extends DefaultTask {
 
     public BaseGraalCompileTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
-        this.outputFile.set(getProject().getLayout().getBuildDirectory()
-                .dir("graal")
-                .map(d -> d.file(outputName.get())));
     }
 
     protected final File maybeCreateOutputDirectory() throws IOException {
@@ -71,6 +67,7 @@ public class BaseGraalCompileTask extends DefaultTask {
 
     /**
      * Adds all graal vm command line args into the specified args list.
+     *
      * @param args The list where all the command line args are going to be loaded
      * @throws IOException If any problem while creating output directory
      */
@@ -101,8 +98,12 @@ public class BaseGraalCompileTask extends DefaultTask {
 
     private Path getArchitectureSpecifiedBinaryPath() {
         switch (Platform.operatingSystem()) {
-            case MAC: return Paths.get("Contents", "Home", "bin", "native-image");
-            case LINUX: return Paths.get("bin", "native-image");
+            case MAC:
+                return Paths.get("Contents", "Home", "bin", "native-image");
+            case LINUX:
+                return Paths.get("bin", "native-image");
+            case WINDOWS:
+                return Paths.get("bin", "native-image.cmd");
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -143,6 +144,17 @@ public class BaseGraalCompileTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getOutputFile() {
+        String name = outputName.getOrElse("unknown");
+        if (Platform.operatingSystem().equals(Platform.OperatingSystem.WINDOWS)) {
+            if (!name.endsWith(".exe")) {
+                name = name + ".exe";
+            }
+        }
+        final String finalName = name;
+        RegularFileProperty outputFile = getProject().getObjects().fileProperty();
+        outputFile.set(getProject().getLayout().getBuildDirectory()
+                .dir("graal")
+                .map(d -> d.file(finalName)));
         return outputFile;
     }
 

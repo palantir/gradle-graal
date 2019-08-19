@@ -18,8 +18,10 @@ package com.palantir.gradle.graal;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.RegularFile;
@@ -27,6 +29,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+
 
 /**
  * Runs GraalVM's native-image command with configured options and parameters.
@@ -46,10 +49,26 @@ public class NativeImageTask extends BaseGraalCompileTask {
         List<String> args = new ArrayList<>();
         configureArgs(args);
         args.add(mainClass.get());
-        getProject().exec(spec -> {
-            spec.executable(getExecutable());
-            spec.args(args);
-        });
+        if (Platform.operatingSystem().equals(Platform.OperatingSystem.WINDOWS)) {
+            String batContent = "@echo off\r\n" +
+                    "call \"C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd\"\r\n" +
+                    "call \"" + getExecutable() + "\"" + args.stream().collect(Collectors.joining(" ", " ", "\r\n"));
+            Path tempDirectory = Files.createTempDirectory("com.palantir");
+            Path startCmd = tempDirectory.resolve("start-native-image.cmd");
+            Files.write(startCmd, batContent.getBytes("utf-8"));
+            List<String> cmdArgs = new ArrayList<>();
+            cmdArgs.add("/c");
+            cmdArgs.add(startCmd.toString());
+            getProject().exec(spec -> {
+                spec.executable("cmd.exe");
+                spec.args(cmdArgs);
+            });
+        } else {
+            getProject().exec(spec -> {
+                spec.executable(getExecutable());
+                spec.args(args);
+            });
+        }
     }
 
     @Input

@@ -41,7 +41,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             }
         '''
 
-        file('gradle.properties') << "com.palantir.graal.cache.dir=${getProjectDir().toPath().resolve("cacheDir").toAbsolutePath()}"
+        // for Windows, we need to replace \ by / as the netflix tooling cannot deal with real Windows paths
+        file('gradle.properties') << "com.palantir.graal.cache.dir=${getProjectDir().toPath().resolve("cacheDir").toAbsolutePath().toString().replaceAll("\\\\", "/")}"
     }
 
     def 'allows specifying different RC graal version'() {

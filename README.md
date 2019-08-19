@@ -32,6 +32,15 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
 * `mainClass`: the main class entry-point for the image to run
 * `option`: additional native-image options `https://github.com/oracle/graal/blob/master/substratevm/OPTIONS.md`
 
+Preconditions when using on Windows
+-----------------------------------
+
+GraalVM [needs](https://github.com/oracle/graal/issues/1258) the [Microsoft Windows SDK for Windows 7 and .NET Framework 4](https://www.microsoft.com/en-us/download/details.aspx?id=8442) as well as [the C compilers from KB2519277](https://stackoverflow.com/a/45784634/873282).
+
+You can install it using [chocolatey](https://chocolatey.org/):
+
+    choco install windows-sdk-7.1 kb2519277
+
 Local GraalVM Tooling Cache
 ---------------------------
 We maintain a number of different repositories, and rather than re-download tooling and cache it per repository, this

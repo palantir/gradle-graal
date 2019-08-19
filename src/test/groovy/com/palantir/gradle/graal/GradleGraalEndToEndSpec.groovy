@@ -49,11 +49,11 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
         println "Gradle Standard Out:\n" + result.standardOutput
         println "Gradle Standard Error:\n" + result.standardError
-        File output = new File(getProjectDir(), "build/graal/hello-world");
+        File output = new File(getProjectDir(), "build/graal/hello-world" + (Platform.operatingSystem().name().equals("WINDOWS") ? ".exe" : ""));
 
         then:
         output.exists()
-        output.getAbsolutePath().execute().text.equals("hello, world!\n")
+        output.getAbsolutePath().execute().text.startsWith("hello, world!")
 
         when:
         ExecutionResult result2 = runTasksSuccessfully('nativeImage')
@@ -76,7 +76,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         println result3.standardOutput
         !result3.wasUpToDate(':nativeImage')
-        output.getAbsolutePath().execute().text.equals("hello, world (modified)!\n")
+        output.getAbsolutePath().execute().text.startsWith("hello, world (modified)!")
     }
 
     def 'test 1.0.0-rc5 nativeImage'() {
