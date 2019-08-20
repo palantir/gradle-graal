@@ -20,6 +20,9 @@ import com.palantir.logsafe.exceptions.SafeIllegalStateException;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
@@ -35,6 +38,11 @@ import org.gradle.api.tasks.TaskAction;
 
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
+    /**
+     * These binaries get .cmd as their filename extension, instead of .cmd (on Windows).
+     */
+    private static final Set<String> WINDOWS_CMD_BINARIES =
+            new HashSet<>(Arrays.asList("native-image", "native-image-configure", "polyglot"));
 
     private final RegularFileProperty inputArchive = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
@@ -97,8 +105,7 @@ public class ExtractGraalTask extends DefaultTask {
 
         if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
             // most executables in the GraalVM distribution for Windows have an .exe extension
-            if (binaryName.equals("native-image") || binaryName.equals("native-image-configure")
-                    || binaryName.equals("polyglot")) {
+            if (WINDOWS_CMD_BINARIES.contains(binaryName)) {
                 binaryExtension = ".cmd";
             } else {
                 binaryExtension = ".exe";
