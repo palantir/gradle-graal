@@ -71,7 +71,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
                 ExtractGraalTask.class,
                 task -> {
                     task.setGraalVersion(extension.getGraalVersion());
-                    task.setInputTgz(downloadGraal.get().getTgz());
+                    task.setInputArchive(downloadGraal.get().getArchive());
                     task.setCacheDir(cacheDir);
                     task.dependsOn(downloadGraal);
                 });

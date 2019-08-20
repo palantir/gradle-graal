@@ -49,7 +49,7 @@ public class DownloadGraalTask extends DefaultTask {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
 
-        onlyIf(task -> !getTgz().get().getAsFile().exists());
+        onlyIf(task -> !getArchive().get().getAsFile().exists());
     }
 
     @TaskAction
@@ -61,12 +61,12 @@ public class DownloadGraalTask extends DefaultTask {
                 ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
 
         try (InputStream in = new URL(render(artifactPattern)).openStream()) {
-            Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, getArchive().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     @OutputFile
-    public final Provider<RegularFile> getTgz() {
+    public final Provider<RegularFile> getArchive() {
         return getProject().getLayout()
                 .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
     }

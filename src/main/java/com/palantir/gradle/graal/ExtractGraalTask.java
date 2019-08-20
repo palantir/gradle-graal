@@ -21,6 +21,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -35,14 +36,15 @@ import org.gradle.api.tasks.TaskAction;
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
 public class ExtractGraalTask extends DefaultTask {
 
-    private final RegularFileProperty inputTgz = getProject().getObjects().fileProperty();
+    private final RegularFileProperty inputArchive = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
-        setDescription("Extracts GraalVM tooling from downloaded tgz archive using the system's tar command.");
+        setDescription("Extracts GraalVM tooling from downloaded archive using the system's tar command or Gradle's"
+                + " copy method.");
 
         onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
         outputDirectory.set(graalVersion.map(v ->
@@ -58,15 +60,27 @@ public class ExtractGraalTask extends DefaultTask {
             throw new SafeIllegalStateException("extract task requires graal.graalVersion to be defined.");
         }
 
-        // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
-        getProject().exec(spec -> {
-            spec.executable("tar");
-            spec.args("-xzf", inputTgz.get().getAsFile().getAbsolutePath());
-            spec.workingDir(cacheDir.get().resolve(graalVersion.get()));
-        });
+        Project project = getProject();
+        File inputArchiveFile = inputArchive.get().getAsFile();
+        Path versionedCacheDir = cacheDir.get().resolve(graalVersion.get());
+
+        if (inputArchiveFile.getName().endsWith(".zip")) {
+            project.copy(copySpec -> {
+                copySpec.from(project.zipTree(inputArchiveFile));
+                copySpec.into(versionedCacheDir);
+            });
+        } else {
+            // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
+            project.exec(spec -> {
+                spec.executable("tar");
+                spec.args("-xzf", inputArchiveFile.getAbsolutePath());
+                spec.workingDir(versionedCacheDir);
+            });
+        }
+
         File nativeImageExecutable = getExecutable("native-image");
         if (!nativeImageExecutable.isFile()) {
-            getProject().exec(spec -> {
+            project.exec(spec -> {
                 File graalUpdateExecutable = getExecutable("gu");
                 if (!graalUpdateExecutable.isFile()) {
                     throw new IllegalStateException("Failed to find Graal update binary: " + graalUpdateExecutable);
@@ -109,12 +123,12 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     @InputFile
-    public final Provider<RegularFile> getInputTgz() {
-        return inputTgz;
+    public final Provider<RegularFile> getInputArchive() {
+        return inputArchive;
     }
 
-    public final void setInputTgz(Provider<RegularFile> value) {
-        this.inputTgz.set(value);
+    public final void setInputArchive(Provider<RegularFile> value) {
+        this.inputArchive.set(value);
     }
 
     @Input
