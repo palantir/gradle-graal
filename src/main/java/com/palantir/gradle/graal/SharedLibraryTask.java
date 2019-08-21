@@ -62,9 +62,9 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         args.add("--shared");
         configureArgs(args);
         getProject().exec(spec -> {
+            spec.setExecutable(getExecutable());
+            spec.setArgs(args);
             configurePlatformSpecifics(spec);
-            spec.executable(getExecutable());
-            spec.args(args);
         });
     }
 

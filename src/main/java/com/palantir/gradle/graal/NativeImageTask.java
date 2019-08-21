@@ -65,9 +65,9 @@ public class NativeImageTask extends BaseGraalCompileTask {
         configureArgs(args);
         args.add(mainClass.get());
         getProject().exec(spec -> {
+            spec.setExecutable(getExecutable());
+            spec.setArgs(args);
             configurePlatformSpecifics(spec);
-            spec.executable(getExecutable());
-            spec.args(args);
         });
     }
 
