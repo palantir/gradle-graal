@@ -18,6 +18,7 @@ package com.palantir.gradle.graal;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -25,12 +26,12 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -102,8 +103,8 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         classpathArgument.add(jarFile.getAsFile().get());
 
         return classpathArgument.stream()
-            .map(File::getAbsolutePath)
-            .collect(Collectors.joining(getArchitectureSpecifiedPathSeparator()));
+                .map(File::getAbsolutePath)
+                .collect(Collectors.joining(getArchitectureSpecifiedPathSeparator()));
     }
 
     private Path getArchitectureSpecifiedBinaryPath() {
@@ -132,19 +133,29 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
             // on Windows the native-image executable needs to be launched from the Windows SDK Command Prompt
             // this is mentioned at https://github.com/oracle/graal/tree/master/substratevm#quick-start
-            // all this does though, is setting a bunch of environment variables
+            // here we create and launch a temporary .cmd file that first calls SetEnv.cmd and then runs Graal
 
-            String cmdContent = "@echo off\r\n" +
-                    "call \"C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd\"\r\n" +
-                    "\"" + spec.getExecutable() + "\"" + spec.getArgs().stream().collect(Collectors.joining(" ", " ", "\r\n"));
-            Path startCmd = getProject().getBuildDir().toPath().resolve("tmp").resolve("com.palantir.graal").resolve("start-executable.cmd");
+            String outputRedirection = "";
+            if (!getLogger().isEnabled(LogLevel.INFO)) {
+                // hide the output of SetEnv.cmd (an error that can safely be ignored and info messages)
+                // if Gradle isn't run with e.g. --info
+                outputRedirection = " >nul 2>&1";
+            }
+
+            String argsString = spec.getArgs().stream().collect(Collectors.joining(" ", " ", "\r\n"));
+            String cmdContent = "@echo off\r\n"
+                    + "call \"C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd\""
+                    + outputRedirection + "\r\n"
+                    + "\"" + spec.getExecutable() + "\"" + argsString;
+            Path buildPath = getProject().getBuildDir().toPath();
+            Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
             try {
                 if (!Files.exists(startCmd.getParent())) {
                     Files.createDirectories(startCmd.getParent());
                 }
-                Files.write(startCmd, cmdContent.getBytes("utf-8"));
+                Files.write(startCmd, cmdContent.getBytes(StandardCharsets.UTF_8));
             } catch (IOException e) {
-                // "utf-8" is always known
+                throw new RuntimeException(e);
             }
 
             List<String> cmdArgs = new ArrayList<>();
@@ -158,17 +169,6 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
             spec.setArgs(cmdArgs);
         }
     }
-
-    /*
-     This regex basically means:
-     - from the start (^), find the first occurrence of "REG_" after some other stuff (.+?, + = one or more, ? = lazy)
-     - keep going as long it's not whitespace (\S)
-     - hop over all the whitespace (\s)
-     - read the rest of the line until the end ($) into group 1 (the parens)
-
-     Note that this fails, if the name contains "REG_", but it's ok here, since such keys aren't queried.
-     */
-    private static final Pattern regValueLine = Pattern.compile("^.+?REG_\\S+\\s+(.*)$");
 
     protected static long fileSizeMegabytes(RegularFile regularFile) {
         try {
