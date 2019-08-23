@@ -19,6 +19,8 @@ package com.palantir.gradle.graal;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskAction;
 
 /**
@@ -30,6 +32,28 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         setDescription(
                 "Runs GraalVM's native-image command configured to produce a shared library."
         );
+        // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
+        doLast(new LogAction());
+    }
+
+    /**
+     * Returns a platform-dependent file extension for libraries.
+     *
+     * @return ".dylib" on {@link Platform.OperatingSystem#MAC MAC}, ".so" on
+     *          {@link Platform.OperatingSystem#LINUX LINUX}, ".dll" on {@link Platform.OperatingSystem#WINDOWS WINDOWS}
+     */
+    @Override
+    protected String getArchitectureSpecifiedOutputExtension() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+                return ".dylib";
+            case LINUX:
+                return ".so";
+            case WINDOWS:
+                return ".dll";
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        }
     }
 
     @TaskAction
@@ -38,9 +62,19 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         args.add("--shared");
         configureArgs(args);
         getProject().exec(spec -> {
-            spec.executable(getExecutable());
-            spec.args(args);
+            spec.setExecutable(getExecutable());
+            spec.setArgs(args);
+            configurePlatformSpecifics(spec);
         });
+    }
+
+    private class LogAction implements Action<Task> {
+        @Override
+        public void execute(Task task) {
+            getLogger().warn("shared library available at {} ({} MB)",
+                    getProject().relativePath(getOutputFile().get().getAsFile()),
+                    fileSizeMegabytes(getOutputFile().get()));
+        }
     }
 
 }

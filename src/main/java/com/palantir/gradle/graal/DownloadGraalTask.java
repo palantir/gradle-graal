@@ -33,12 +33,13 @@ import org.gradle.api.tasks.TaskAction;
 /** Downloads GraalVM binaries. */
 public class DownloadGraalTask extends DefaultTask {
 
+    // RC versions don't have a windows variant, so no [ext] is needed
     private static final String ARTIFACT_PATTERN_RC_VERSION
             = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
     private static final String ARTIFACT_PATTERN_RELEASE_VERSION
-            = "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].tar.gz";
+            = "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].[ext]";
 
-    private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].tar.gz";
+    private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].[ext]";
 
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
@@ -48,7 +49,7 @@ public class DownloadGraalTask extends DefaultTask {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
 
-        onlyIf(task -> !getTgz().get().getAsFile().exists());
+        onlyIf(task -> !getArchive().get().getAsFile().exists());
     }
 
     @TaskAction
@@ -60,12 +61,12 @@ public class DownloadGraalTask extends DefaultTask {
                 ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
 
         try (InputStream in = new URL(render(artifactPattern)).openStream()) {
-            Files.copy(in, getTgz().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(in, getArchive().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
     @OutputFile
-    public final Provider<RegularFile> getTgz() {
+    public final Provider<RegularFile> getArchive() {
         return getProject().getLayout()
                 .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
     }
@@ -97,7 +98,8 @@ public class DownloadGraalTask extends DefaultTask {
                 .replaceAll("\\[url\\]", downloadBaseUrl.get())
                 .replaceAll("\\[version\\]", graalVersion.get())
                 .replaceAll("\\[os\\]", getOperatingSystem())
-                .replaceAll("\\[arch\\]", getArchitecture());
+                .replaceAll("\\[arch\\]", getArchitecture())
+                .replaceAll("\\[ext\\]", getArchiveExtension());
     }
 
     private String getOperatingSystem() {
@@ -106,6 +108,8 @@ public class DownloadGraalTask extends DefaultTask {
                 return isGraalRcVersion() ? "macos" : "darwin";
             case LINUX:
                 return "linux";
+            case WINDOWS:
+                return "windows";
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -117,6 +121,18 @@ public class DownloadGraalTask extends DefaultTask {
                 return "amd64";
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
+        }
+    }
+
+    private String getArchiveExtension() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+            case LINUX:
+                return "tar.gz";
+            case WINDOWS:
+                return "zip";
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
     }
 

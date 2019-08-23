@@ -17,12 +17,10 @@
 package com.palantir.gradle.graal;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
@@ -37,8 +35,28 @@ public class NativeImageTask extends BaseGraalCompileTask {
 
     public NativeImageTask() {
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
         doLast(new LogAction());
+    }
+
+    /**
+     * Returns a platform-dependent file extension for executables.
+     *
+     * @return an empty String on {@link Platform.OperatingSystem#MAC MAC} and
+     *         {@link Platform.OperatingSystem#LINUX LINUX}, ".exe" on {@link Platform.OperatingSystem#WINDOWS WINDOWS}
+     */
+    @Override
+    protected String getArchitectureSpecifiedOutputExtension() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+            case LINUX:
+                return "";
+            case WINDOWS:
+                return ".exe";
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        }
     }
 
     @TaskAction
@@ -47,8 +65,9 @@ public class NativeImageTask extends BaseGraalCompileTask {
         configureArgs(args);
         args.add(mainClass.get());
         getProject().exec(spec -> {
-            spec.executable(getExecutable());
-            spec.args(args);
+            spec.setExecutable(getExecutable());
+            spec.setArgs(args);
+            configurePlatformSpecifics(spec);
         });
     }
 
@@ -61,18 +80,10 @@ public class NativeImageTask extends BaseGraalCompileTask {
         mainClass.set(provider);
     }
 
-    private long fileSizeMegabytes(RegularFile regularFile) {
-        try {
-            return Files.size(regularFile.getAsFile().toPath()) / (1000 * 1000);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private class LogAction implements Action<Task> {
         @Override
         public void execute(Task task) {
-            getLogger().warn("native-image available at {} ({}MB)",
+            getLogger().warn("native image available at {} ({} MB)",
                     getProject().relativePath(getOutputFile().get().getAsFile()),
                     fileSizeMegabytes(getOutputFile().get()));
         }

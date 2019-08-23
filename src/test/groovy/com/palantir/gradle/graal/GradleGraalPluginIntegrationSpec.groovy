@@ -21,6 +21,8 @@ import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.Rule
+import spock.lang.IgnoreIf
+import spock.lang.Requires
 
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
@@ -41,9 +43,13 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             }
         '''
 
-        file('gradle.properties') << "com.palantir.graal.cache.dir=${getProjectDir().toPath().resolve("cacheDir").toAbsolutePath()}"
+        // on Windows the path contains backslashes, which need to be escaped in .properties files
+        def cacheDirPath = getProjectDir().toPath().resolve("cacheDir").toAbsolutePath().toString().replace("\\", "\\\\")
+        file('gradle.properties') << "com.palantir.graal.cache.dir=${cacheDirPath}"
     }
 
+    // there is no RC version for Windows
+    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
     def 'allows specifying different RC graal version'() {
         setup:
         buildFile << """
@@ -54,7 +60,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
@@ -65,13 +71,16 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         !result.wasUpToDate(':downloadGraalTooling')
         !result.wasSkipped(':downloadGraalTooling')
 
-        server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
+        // requestUrl can contain "127.0.0.1" instead of "localhost"
+        server.takeRequest().requestUrl.toString() =~ "http://(localhost|127\\.0\\.0\\.1):${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
 
         file("cacheDir/1.0.0-rc3/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
     }
 
-    def 'allows specifying different GA graal version'() {
+    // for Windows the download is a .zip, this is tested below
+    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
+    def 'allows specifying different GA graal version (non-windows)'() {
         setup:
         buildFile << """
             apply plugin: 'com.palantir.graal'
@@ -81,7 +90,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
@@ -92,10 +101,46 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         !result.wasUpToDate(':downloadGraalTooling')
         !result.wasSkipped(':downloadGraalTooling')
 
-        server.takeRequest().requestUrl.toString() =~ "http://localhost:${server.port}" +
-                "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
+        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
+        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
+        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
+        // so the comparison is only made for `path`
+        server.takeRequest().path =~
+          "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
 
         file("cacheDir/19.0.0/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
+    }
+
+    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
+    def 'allows specifying different GA graal version (windows)'() {
+        setup:
+        buildFile << """
+            apply plugin: 'com.palantir.graal'
+
+            graal {
+               graalVersion '19.0.0'
+               downloadBaseUrl '${fakeBaseUrl}'
+            }
+        """
+        server.enqueue(new MockResponse().setBody('<<zip>>'))
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
+
+        then:
+        println result.getStandardOutput()
+        result.wasExecuted(':downloadGraalTooling')
+        !result.wasUpToDate(':downloadGraalTooling')
+        !result.wasSkipped(':downloadGraalTooling')
+
+        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
+        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
+        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
+        // so the comparison is only made for `path`
+        server.takeRequest().path =~
+          "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-windows-amd64-19.0.0.zip"
+
+        file("cacheDir/19.0.0/graalvm-ce-19.0.0-amd64.zip").text == '<<zip>>'
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
@@ -107,7 +152,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'));
+        server.enqueue(new MockResponse().setBody('<<tgz>>'))
 
         when:
         ExecutionResult result1 = runTasksSuccessfully('downloadGraalTooling')
