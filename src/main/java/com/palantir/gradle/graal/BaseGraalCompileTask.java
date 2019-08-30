@@ -99,7 +99,12 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     protected final String generateClasspathArgument() {
         Set<File> classpathArgument = new LinkedHashSet<>();
 
-        classpathArgument.addAll(classpath.get().getFiles());
+        classpathArgument.addAll(classpath.get()
+                .getFiles()
+                .stream()
+                .filter(file -> file.getName()
+                        .endsWith(".jar"))
+                .collect(Collectors.toList()));
         classpathArgument.add(jarFile.getAsFile().get());
 
         return classpathArgument.stream()
