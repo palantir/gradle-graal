@@ -27,7 +27,7 @@ import org.gradle.api.provider.Provider;
 public class GraalExtension {
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
-    private static final String DEFAULT_GRAAL_VERSION = "19.0.2";
+    private static final String DEFAULT_GRAAL_VERSION = "19.2.0";
 
     private final Property<String> downloadBaseUrl;
     private final Property<String> graalVersion;
