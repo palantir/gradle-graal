@@ -1,11 +1,9 @@
 # Run ./gradlew --write-locks to regenerate this file
-com.google.errorprone:error_prone_annotations:2.3.3 (3 constraints: 2220171d)
-com.palantir.safe-logging:preconditions:1.10.1 (1 constraints: 35052a3b)
-com.palantir.safe-logging:safe-logging:1.10.1 (1 constraints: 2f114cd1)
 
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
 com.google.code.findbugs:jsr305:3.0.2 (2 constraints: 1d0fb186)
+com.google.errorprone:error_prone_annotations:2.3.3 (2 constraints: 1f0f1287)
 com.google.guava:failureaccess:1.0.1 (1 constraints: 140ae1b4)
 com.google.guava:guava:27.0.1-jre (2 constraints: c7135868)
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)

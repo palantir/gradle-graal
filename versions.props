@@ -1,6 +1,5 @@
 com.google.guava:guava = 27.0.1-jre
 com.netflix.nebula:nebula-test = 7.3.0
-com.palantir.safe-logging:preconditions = 1.10.1
 com.squareup.okhttp3:* = 3.14.1
 
 # conflict resolution
