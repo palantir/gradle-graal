@@ -67,11 +67,6 @@ dependencies {
 
 }
 
-dependencyRecommendations {
-    strategy OverrideTransitives
-    propertiesFile file: project.rootProject.file('versions.props')
-}
-
 gradlePlugin {
     // do not add new task to publish to plugins.gradle.org
     automatedPublishing = false
