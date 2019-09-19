@@ -27,6 +27,7 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:13.6.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:2.6.0'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.12.4'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.2'
         classpath 'gradle.plugin.org.inferred:gradle-processors:3.1.0'
     }
@@ -42,6 +43,7 @@ repositories {
 apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.consistent-versions'
 apply plugin: 'nebula.maven-publish'
 apply plugin: 'nebula.source-jar'
 apply plugin: 'org.inferred.processors'
@@ -68,12 +70,6 @@ dependencies {
 dependencyRecommendations {
     strategy OverrideTransitives
     propertiesFile file: project.rootProject.file('versions.props')
-}
-
-configurations.all {
-    resolutionStrategy {
-        failOnVersionConflict()
-    }
 }
 
 gradlePlugin {
