@@ -70,7 +70,7 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
 
     private class LogAction implements Action<Task> {
         @Override
-        public void execute(Task task) {
+        public void execute(Task _task) {
             getLogger().warn("shared library available at {} ({} MB)",
                     getProject().relativePath(getOutputFile().get().getAsFile()),
                     fileSizeMegabytes(getOutputFile().get()));
