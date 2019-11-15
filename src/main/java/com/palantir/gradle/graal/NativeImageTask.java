@@ -80,7 +80,7 @@ public class NativeImageTask extends BaseGraalCompileTask {
         mainClass.set(provider);
     }
 
-    private class LogAction implements Action<Task> {
+    private final class LogAction implements Action<Task> {
         @Override
         public void execute(Task _task) {
             getLogger().warn("native image available at {} ({} MB)",

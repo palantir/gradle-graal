@@ -68,7 +68,7 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         });
     }
 
-    private class LogAction implements Action<Task> {
+    private final class LogAction implements Action<Task> {
         @Override
         public void execute(Task _task) {
             getLogger().warn("shared library available at {} ({} MB)",
