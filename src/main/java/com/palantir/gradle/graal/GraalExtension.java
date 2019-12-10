@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import java.util.Arrays;
 import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -27,10 +28,14 @@ import org.gradle.api.provider.Provider;
 public class GraalExtension {
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
+    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "19.2.0";
+    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("8", "11");
+    private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
     private final Property<String> graalVersion;
+    private final Property<String> javaVersion;
     private final Property<String> mainClass;
     private final Property<String> outputName;
     private final ListProperty<String> options;
@@ -38,13 +43,14 @@ public class GraalExtension {
     public GraalExtension(Project project) {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
+        javaVersion = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
 
         // defaults
-        downloadBaseUrl.set(DEFAULT_DOWNLOAD_BASE_URL);
         graalVersion.set(DEFAULT_GRAAL_VERSION);
+        javaVersion.set(DEFAULT_JAVA_VERSION);
     }
 
     public final void downloadBaseUrl(String value) {
@@ -54,10 +60,12 @@ public class GraalExtension {
     /**
      * Returns the base URL to use for downloading GraalVM binaries.
      *
-     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL}.</p>
+     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL} for GraalVM < 19.3.</p>
+     * <p>Defaults to {@link #DOWNLOAD_BASE_URL_GRAAL_19_3} for GraalVM >= 19.3.</p>
      */
     public final Provider<String> getDownloadBaseUrl() {
-        return downloadBaseUrl;
+        return downloadBaseUrl
+                .orElse(getDefaultDownloadBaseUrl());
     }
 
     public final void mainClass(String value) {
@@ -87,6 +95,25 @@ public class GraalExtension {
     }
 
     /**
+     * Returns the javaVersion for GraalVM to use.
+     *
+     * <p>Defaults to {@link #DEFAULT_JAVA_VERSION}</p>
+     */
+    public final Provider<String> getJavaVersion() {
+        return javaVersion;
+    }
+
+    public final void javaVersion(String value) {
+        if (!SUPPORTED_JAVA_VERSIONS.contains(value)) {
+            throw new GradleException("Java version "
+                                      + value
+                                      + " is no supported. Supported versions are: "
+                                      + SUPPORTED_JAVA_VERSIONS);
+        }
+        javaVersion.set(value);
+    }
+
+    /**
      * Returns the graalVersion of GraalVM to use.
      *
      * <p>Defaults to {@link #DEFAULT_GRAAL_VERSION}</p>
@@ -95,9 +122,8 @@ public class GraalExtension {
         return graalVersion;
     }
 
-
     public final Provider<List<String>> getOptions() {
-        return this.options;
+        return options;
     }
 
     /**
@@ -110,4 +136,20 @@ public class GraalExtension {
         this.options.add(option);
     }
 
+    public final String getGraalDirectoryName() {
+        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+            return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
+        }
+
+        return "graalvm-ce-" + graalVersion.get();
+    }
+
+    private String getDefaultDownloadBaseUrl() {
+        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+            return DOWNLOAD_BASE_URL_GRAAL_19_3;
+        } else if (!javaVersion.get().equals("8")) {
+            throw new GradleException("Unsupported Java version for GraalVM version.");
+        }
+        return DEFAULT_DOWNLOAD_BASE_URL;
+    }
 }
