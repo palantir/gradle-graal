@@ -140,7 +140,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.takeRequest().path =~
                 "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-windows-amd64-19.0.0.zip"
 
-        file("cacheDir/19.0.0/8/graalvm-ce-java8-19.0.0-amd64.zip").text == '<<zip>>'
+        file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.zip").text == '<<zip>>'
     }
 
     // for Windows the download is a .zip, this is tested below

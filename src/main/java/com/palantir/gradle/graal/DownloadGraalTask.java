@@ -55,8 +55,7 @@ public class DownloadGraalTask extends DefaultTask {
 
     @TaskAction
     public final void downloadGraal() throws IOException {
-        Path cache = getCacheSubdirectory().get();
-        Files.createDirectories(cache);
+        Files.createDirectories(getArchive().get().getAsFile().toPath().getParent());
 
         final String artifactPattern = isGraalRcVersion()
                 ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
@@ -69,7 +68,8 @@ public class DownloadGraalTask extends DefaultTask {
     @OutputFile
     public final Provider<RegularFile> getArchive() {
         return getProject().getLayout()
-                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
+                .file(getCacheSubdirectory()
+                        .map(dir -> dir.resolve(javaVersion.get()).resolve(render(FILENAME_PATTERN)).toFile()));
     }
 
     @Input

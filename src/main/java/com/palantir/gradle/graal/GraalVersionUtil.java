@@ -19,7 +19,7 @@ package com.palantir.gradle.graal;
 public final class GraalVersionUtil {
     public static boolean isGraalVersionGreatherThan19_3(String graalVersion) {
         try {
-            final String[] versionSplit = graalVersion.split("\\.");
+            final String[] versionSplit = graalVersion.split("\\.", -1);
             final int majorVersion = Integer.valueOf(versionSplit[0]);
             final int minorVersion = Integer.valueOf(versionSplit[1]);
             return majorVersion > 19 || (majorVersion == 19 && minorVersion >= 3);
