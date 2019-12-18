@@ -86,6 +86,129 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
+    def 'test version 19.3.0 nativeImage'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world!");
+            }
+        }
+        '''
+
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        graal {
+            mainClass 'com.palantir.test.Main'
+            outputName 'hello-world'
+            graalVersion '19.3.0'
+        }
+        '''
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+        def outputPath = "build/graal/hello-world"
+        if (Platform.operatingSystem() == WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath)
+
+        then:
+        output.exists()
+        output.getAbsolutePath().execute().text.equals("hello, world!" + System.lineSeparator())
+
+        when:
+        ExecutionResult result2 = runTasksSuccessfully('nativeImage')
+
+        then:
+        result2.wasUpToDate(':nativeImage')
+
+        when:
+        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java").text = '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world (modified)!");
+            }
+        }
+        '''
+        ExecutionResult result3 = runTasksSuccessfully('nativeImage')
+
+        then:
+        println result3.standardOutput
+        !result3.wasUpToDate(':nativeImage')
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
+    }
+
+    def 'test version 19.3.0 nativeImage Java 11'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world!");
+            }
+        }
+        '''
+
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        graal {
+            mainClass 'com.palantir.test.Main'
+            outputName 'hello-world'
+            graalVersion '19.3.0'
+            javaVersion '11'
+        }
+        '''
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+        def outputPath = "build/graal/hello-world"
+        if (Platform.operatingSystem() == WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath)
+
+        then:
+        output.exists()
+        output.getAbsolutePath().execute().text.equals("hello, world!" + System.lineSeparator())
+
+        when:
+        ExecutionResult result2 = runTasksSuccessfully('nativeImage')
+
+        then:
+        result2.wasUpToDate(':nativeImage')
+
+        when:
+        new File(getProjectDir(), "src/main/java/com/palantir/test/Main.java").text = '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, world (modified)!");
+            }
+        }
+        '''
+        ExecutionResult result3 = runTasksSuccessfully('nativeImage')
+
+        then:
+        println result3.standardOutput
+        !result3.wasUpToDate(':nativeImage')
+        output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
+    }
+
     // there is no RC version for Windows
     @IgnoreIf({ Platform.operatingSystem() == WINDOWS })
     def 'test 1.0.0-rc5 nativeImage'() {
@@ -209,6 +332,53 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         apply plugin: 'com.palantir.graal'
         graal {
             outputName 'hello-world'
+        }
+        '''
+
+        when:
+        runTasksSuccessfully('sharedLibrary')
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world." + getSharedLibPrefixByOs())
+
+        then:
+        dylibFile.exists()
+    }
+
+    def 'can build shared libraries on version 19.3.0'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+        public final class Main {}
+        '''
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+        graal {
+            outputName 'hello-world'
+            graalVersion '19.3.0'
+        }
+        '''
+
+        when:
+        runTasksSuccessfully('sharedLibrary')
+        File dylibFile = new File(getProjectDir(), "build/graal/hello-world." + getSharedLibPrefixByOs())
+
+        then:
+        dylibFile.exists()
+    }
+
+    def 'can build shared libraries on version 19.3.0 Java 11'() {
+        setup:
+        directory("src/main/java/com/palantir/test")
+        file("src/main/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+        public final class Main {}
+        '''
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+        graal {
+            outputName 'hello-world'
+            graalVersion '19.3.0'
+            javaVersion '11'
         }
         '''
 

@@ -56,8 +56,8 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     public BaseGraalCompileTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         this.outputFile.set(getProject().getLayout().getBuildDirectory()
-                .dir("graal")
-                .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
+                                    .dir("graal")
+                                    .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
     }
 
     protected abstract String getArchitectureSpecifiedOutputExtension();
@@ -143,11 +143,16 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 outputRedirection = " >nul 2>&1";
             }
 
-            String argsString = spec.getArgs().stream().collect(Collectors.joining(" ", " ", "\r\n"));
+            String argsString = spec.getArgs().stream()
+                    .map(s -> "\"" + s + "\"")
+                    .collect(Collectors.joining(" ", " ", "\r\n"));
+            String command = Integer.valueOf(javaVersion.get()) >= 11
+                             ? "call \"C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\""
+                             : "call \"C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd\"";
             String cmdContent = "@echo off\r\n"
-                    + "call \"C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd\""
-                    + outputRedirection + "\r\n"
-                    + "\"" + spec.getExecutable() + "\"" + argsString;
+                                + command
+                                + outputRedirection + "\r\n"
+                                + "\"" + spec.getExecutable() + "\"" + argsString;
             Path buildPath = getProject().getBuildDir().toPath();
             Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
             try {
