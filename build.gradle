@@ -18,7 +18,7 @@ buildscript {
     repositories {
         jcenter()
         gradlePluginPortal()
-        maven { url  "http://palantir.bintray.com/releases" }
+        maven { url  'https://palantir.bintray.com/releases'}
     }
 
     dependencies {
@@ -37,7 +37,7 @@ buildscript {
 repositories {
     jcenter()
     gradlePluginPortal()
-    maven { url  "http://palantir.bintray.com/releases" }
+    maven { url  'https://palantir.bintray.com/releases'}
 }
 
 apply plugin: 'com.gradle.plugin-publish'
