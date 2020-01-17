@@ -91,4 +91,43 @@ class GradleExtensionSpec extends ProjectSpec {
         then:
         thrown GradleException
     }
+
+    def 'extension returns the correct VS Vars Path for default Java version 8'() {
+        expect:
+        extension.getVsVarsPath().get() == "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
+    }
+
+    def 'extension returns the correct VS Vars Path for default Java version 11'() {
+        when:
+        extension.javaVersion("11")
+
+        then:
+        extension.getVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+    }
+
+    def 'extension returns the correct VS Vars Path for default Java version 11 and different VS Edition'() {
+        when:
+        extension.javaVersion("11")
+        extension.vsEdition("Enterprise")
+
+        then:
+        extension.getVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat"
+    }
+
+    def 'extension returns the correct VS Vars Path for default Java version 11 and different VS Version'() {
+        when:
+        extension.javaVersion("11")
+        extension.vsVersion("2020")
+
+        then:
+        extension.getVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2020\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat"
+    }
+
+    def 'extension returns the provided VS Vars Path'() {
+        when:
+        extension.vsVarsPath("path")
+
+        then:
+        extension.getVsVarsPath().get() =~ "path"
+    }
 }

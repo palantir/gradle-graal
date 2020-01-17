@@ -272,7 +272,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
-    def 'allows specifying additional properties'() {
+    def 'allows specifying additional properties on default version'() {
         setup:
         directory("src/main/java/com/palantir/test")
         file("src/main/java/com/palantir/test/Main.java") << '''

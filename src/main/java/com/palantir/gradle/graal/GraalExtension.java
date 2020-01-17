@@ -16,16 +16,23 @@
 
 package com.palantir.gradle.graal;
 
-import java.util.Arrays;
-import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-/** Contains options and settings for tuning GraalVM use. */
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * Contains options and settings for tuning GraalVM use.
+ */
 public class GraalExtension {
+    private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd";
+    private static final String DEFAULT_VS_VERSION = "2019";
+    private static final String DEFAULT_VS_EDITION = "Community";
+    private static final String DEFAULT_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/releases/download/";
@@ -36,6 +43,9 @@ public class GraalExtension {
     private final Property<String> downloadBaseUrl;
     private final Property<String> graalVersion;
     private final Property<String> javaVersion;
+    private final Property<String> vsVarsPath;
+    private final Property<String> vsVersion;
+    private final Property<String> vsEdition;
     private final Property<String> mainClass;
     private final Property<String> outputName;
     private final ListProperty<String> options;
@@ -44,6 +54,9 @@ public class GraalExtension {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
         javaVersion = project.getObjects().property(String.class);
+        vsVarsPath = project.getObjects().property(String.class);
+        vsVersion = project.getObjects().property(String.class);
+        vsEdition = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
@@ -72,7 +85,9 @@ public class GraalExtension {
         mainClass.set(value);
     }
 
-    /** Returns the main class to use as the entry point to the generated executable file. */
+    /**
+     * Returns the main class to use as the entry point to the generated executable file.
+     */
     public final Provider<String> getMainClass() {
         return mainClass;
     }
@@ -111,6 +126,36 @@ public class GraalExtension {
                                       + SUPPORTED_JAVA_VERSIONS);
         }
         javaVersion.set(value);
+    }
+
+    /**
+     * Returns the VS 64-bit Variables Path to use.
+     *
+     * <p>Defaults to {@link #DEFAULT_VS_VARS_PATH} for JDK > 11</p>
+     * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK < 11</p>
+     */
+    public final Provider<String> getVsVarsPath() {
+        return vsVarsPath.orElse(getDefaultVsVarsPath());
+    }
+
+    private final String getDefaultVsVarsPath() {
+        return Integer.parseInt(javaVersion.get()) >= 11
+               ? DEFAULT_VS_VARS_PATH
+                       .replaceAll("\\{version}", vsVersion.getOrElse(DEFAULT_VS_VERSION))
+                       .replaceAll("\\{edition}", vsEdition.getOrElse(DEFAULT_VS_EDITION))
+               : WINDOWS_7_ENV_PATH;
+    }
+
+    public final void vsVarsPath(String value) {
+        vsVarsPath.set(value);
+    }
+
+    public final void vsVersion(String value) {
+        vsVersion.set(value);
+    }
+
+    public final void vsEdition(String value) {
+        vsEdition.set(value);
     }
 
     /**
