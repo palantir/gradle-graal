@@ -16,23 +16,24 @@
 
 package com.palantir.gradle.graal;
 
+import java.util.Arrays;
+import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Contains options and settings for tuning GraalVM use.
  */
 public class GraalExtension {
-    private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd";
+    private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\"
+                                                     + "Windows\\v7.1\\Bin\\SetEnv.cmd";
     private static final String DEFAULT_VS_VERSION = "2019";
     private static final String DEFAULT_VS_EDITION = "Community";
-    private static final String DEFAULT_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat";
+    private static final String DEFAULT_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
+                                                       + "{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/releases/download/";
@@ -138,7 +139,7 @@ public class GraalExtension {
         return vsVarsPath.orElse(getDefaultVsVarsPath());
     }
 
-    private final String getDefaultVsVarsPath() {
+    private String getDefaultVsVarsPath() {
         return Integer.parseInt(javaVersion.get()) >= 11
                ? DEFAULT_VS_VARS_PATH
                        .replaceAll("\\{version}", vsVersion.getOrElse(DEFAULT_VS_VERSION))

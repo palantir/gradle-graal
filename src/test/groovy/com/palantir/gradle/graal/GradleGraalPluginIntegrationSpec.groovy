@@ -75,7 +75,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.takeRequest().requestUrl.toString() =~ "http://(localhost|127\\.0\\.0\\.1):${server.port}" +
                 "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
 
-        file("cacheDir/1.0.0-rc3/8/graalvm-ce-java8-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
+        file("cacheDir/1.0.0-rc3/8/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
     }
 
     // for Windows the download is a .zip, this is tested below
@@ -108,7 +108,7 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         server.takeRequest().path =~
           "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
 
-        file("cacheDir/19.0.0/8/graalvm-ce-java8-19.0.0-amd64.tar.gz").text == '<<tgz>>'
+        file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })

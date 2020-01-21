@@ -16,9 +16,11 @@
 
 package com.palantir.gradle.graal
 
+import com.palantir.gradle.graal.util.JavaVersionUtil
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import spock.lang.IgnoreIf
+import spock.lang.Requires
 
 import static com.palantir.gradle.graal.Platform.OperatingSystem.LINUX
 import static com.palantir.gradle.graal.Platform.OperatingSystem.MAC
@@ -26,6 +28,7 @@ import static com.palantir.gradle.graal.Platform.OperatingSystem.WINDOWS
 
 class GradleGraalEndToEndSpec extends IntegrationSpec {
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'test default version nativeImage'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -86,6 +89,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'test version 19.3.0 nativeImage'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -147,6 +151,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 11 })
     def 'test version 19.3.0 nativeImage Java 11'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -210,6 +215,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
     }
 
     // there is no RC version for Windows
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     @IgnoreIf({ Platform.operatingSystem() == WINDOWS })
     def 'test 1.0.0-rc5 nativeImage'() {
         setup:
@@ -272,6 +278,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.equals("hello, world (modified)!" + System.lineSeparator())
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'allows specifying additional properties on default version'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -321,6 +328,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         output.getAbsolutePath().execute().text.toLowerCase().contains("<html")
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'can build shared libraries on default version'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -343,6 +351,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         dylibFile.exists()
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'can build shared libraries on version 19.3.0'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -366,6 +375,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         dylibFile.exists()
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 11 })
     def 'can build shared libraries on version 19.3.0 Java 11'() {
         setup:
         directory("src/main/java/com/palantir/test")
@@ -391,6 +401,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
     }
 
     // there is no RC version for Windows
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     @IgnoreIf({ Platform.operatingSystem() == WINDOWS })
     def 'can build shared libraries on 1.0.0-rc5'() {
         setup:
@@ -415,19 +426,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         dylibFile.exists()
     }
 
-    def getSharedLibPrefixByOs() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-                return "dylib"
-            case LINUX:
-                return "so"
-            case WINDOWS:
-                return "dll"
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem())
-        }
-    }
-
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'should not allow empty mainClass on nativeImage'() {
         buildFile << '''
         apply plugin: 'com.palantir.graal'
@@ -448,6 +447,7 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         result.standardError.contains("No value has been specified for property 'mainClass'")
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'should not allow to add -H:Name'() {
         buildFile << '''
         apply plugin: 'com.palantir.graal'
@@ -469,4 +469,18 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         then:
         result.standardError.contains("Use 'outputName' instead of")
     }
+
+    def getSharedLibPrefixByOs() {
+        switch (Platform.operatingSystem()) {
+            case MAC:
+                return "dylib"
+            case LINUX:
+                return "so"
+            case WINDOWS:
+                return "dll"
+            default:
+                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem())
+        }
+    }
+
 }
