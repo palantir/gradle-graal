@@ -6,3 +6,4 @@ com.squareup.okhttp3:* = 3.14.1
 com.google.code.findbugs:jsr305 = 3.0.2
 com.google.errorprone:error_prone_annotations = 2.3.4
 org.checkerframework:checker-qual = 2.5.3
+org.assertj:assertj-core = 3.15.0
