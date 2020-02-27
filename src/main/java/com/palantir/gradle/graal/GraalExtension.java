@@ -16,6 +16,7 @@
 
 package com.palantir.gradle.graal;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 import org.gradle.api.GradleException;
@@ -30,15 +31,16 @@ import org.gradle.api.provider.Provider;
 public class GraalExtension {
     private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\"
                                                      + "Windows\\v7.1\\Bin\\SetEnv.cmd";
-    private static final String DEFAULT_VS_VERSION = "2019";
-    private static final String DEFAULT_VS_EDITION = "Community";
+    private static final List<String> SUPPORTED_VS_VERSIONS = Arrays.asList("2019", "2017");
+    private static final List<String> SUPPORTED_VS_EDITIONS = Arrays.asList("Enterprise", "Professional", "Community");
+    private static final String DEFAULT_VS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio";
     private static final String DEFAULT_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
                                                        + "{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/releases/download/";
-    private static final String DEFAULT_GRAAL_VERSION = "19.2.0";
-    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("8", "11");
+    private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
+    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
@@ -74,8 +76,8 @@ public class GraalExtension {
     /**
      * Returns the base URL to use for downloading GraalVM binaries.
      *
-     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL} for GraalVM < 19.3.</p>
-     * <p>Defaults to {@link #DOWNLOAD_BASE_URL_GRAAL_19_3} for GraalVM >= 19.3.</p>
+     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL} for GraalVM lower than 19.3.</p>
+     * <p>Defaults to {@link #DOWNLOAD_BASE_URL_GRAAL_19_3} for GraalVM higher or equal to 19.3.</p>
      */
     public final Provider<String> getDownloadBaseUrl() {
         return downloadBaseUrl
@@ -123,7 +125,7 @@ public class GraalExtension {
         if (!SUPPORTED_JAVA_VERSIONS.contains(value)) {
             throw new GradleException("Java version "
                                       + value
-                                      + " is no supported. Supported versions are: "
+                                      + " is not supported. Supported versions are: "
                                       + SUPPORTED_JAVA_VERSIONS);
         }
         javaVersion.set(value);
@@ -132,19 +134,51 @@ public class GraalExtension {
     /**
      * Returns the VS 64-bit Variables Path to use.
      *
-     * <p>Defaults to {@link #DEFAULT_VS_VARS_PATH} for JDK > 11</p>
-     * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK < 11</p>
+     * <p>Defaults to {@link #DEFAULT_VS_VARS_PATH} for JDK higher or equal to 11</p>
+     * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK lower than 11</p>
      */
     public final Provider<String> getVsVarsPath() {
-        return vsVarsPath.orElse(getDefaultVsVarsPath());
+        return vsVarsPath.orElse(searchVsVarsPath());
     }
 
-    private String getDefaultVsVarsPath() {
-        return Integer.parseInt(javaVersion.get()) >= 11
-               ? DEFAULT_VS_VARS_PATH
-                       .replaceAll("\\{version}", vsVersion.getOrElse(DEFAULT_VS_VERSION))
-                       .replaceAll("\\{edition}", vsEdition.getOrElse(DEFAULT_VS_EDITION))
-               : WINDOWS_7_ENV_PATH;
+    private String searchVsVarsPath() {
+        String searchedVsVersion = vsVersion.getOrElse(getNewestVsVersionInstalled());
+        String searchedVsEdition = vsEdition.getOrElse(getBiggestVsEditionInstalled(searchedVsVersion));
+        String searchedVsVarsPath = Integer.parseInt(javaVersion.get()) >= 11
+                ? DEFAULT_VS_VARS_PATH
+                        .replaceAll("\\{version}", searchedVsVersion)
+                        .replaceAll("\\{edition}", searchedVsEdition)
+                : WINDOWS_7_ENV_PATH;
+        if (searchedVsVarsPath == WINDOWS_7_ENV_PATH) {
+            if (!new File(WINDOWS_7_ENV_PATH).exists()) {
+                throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM. "
+                                            + "Searched location: "
+                                            + searchedVsVarsPath);
+            }
+        }
+        return searchedVsVarsPath;
+    }
+
+    private String getNewestVsVersionInstalled() {
+        File directory = new File(DEFAULT_VS_PATH);
+        String searchedVsVersion = FileUtil.getFirstFromDirectory(directory, SUPPORTED_VS_VERSIONS);
+        if (searchedVsVersion != null) {
+            return searchedVsVersion;
+        }
+        throw new GradleException("Couldn't find an installation of Visual Studio suitable for GraalVM. "
+                                      + "Supported versions are: "
+                                      + Arrays.asList(SUPPORTED_VS_VERSIONS));
+    }
+
+    private String getBiggestVsEditionInstalled(String version) {
+        File directory = new File(DEFAULT_VS_PATH, version);
+        String searchedVsEdition = FileUtil.getFirstFromDirectory(directory, SUPPORTED_VS_EDITIONS);
+        if (searchedVsEdition != null) {
+            return searchedVsEdition;
+        }
+        throw new GradleException("Couldn't find an edition of Visual Studio suitable for GraalVM. "
+                                      + "Supported editions are: "
+                                      + Arrays.asList(SUPPORTED_VS_EDITIONS));
     }
 
     public final void vsVarsPath(String value) {
