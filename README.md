@@ -23,8 +23,14 @@ Configuration
 Configure this plugin and its wrappers around GraalVM tools through the `graal` extension with the following options:
 
 **General GraalVM controls**
-* `graalVersion`: the version string to use when downloading GraalVM (defaults to `19.2.0`)
+* `graalVersion`: the version string to use when downloading GraalVM (defaults to `20.0.0`)
 * `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/oracle/graal/releases/download/`)
+* `javaVersion`: the Java version to use (can be either `8` or `11`, defaults to `8`)
+    * for `8`: Windows SDK 7.1 will be used (`C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd`)
+    * for `11`: Visual Studio Build Tools will be used (`C:\Program Files (x86)\Microsoft Visual Studio\{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat`)
+        * `vsVersion`: the version of Visual Studio to use (can be either `2017` or `2019`, by default a search will be performed and the newest will be selected)
+        * `vsEdition`: the edition of Visual Studio to use (can be either `Community`, `Professional` or `Enterprise`, by default a search will be performed and the biggest will be selected)
+        * `vsVarsPath`: path to vcvars64.bat (optional, if it's set it will disable the 2 searches for `vsVersion` and `vsEdition`)
 
 
 **`native-image` controls**
