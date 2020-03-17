@@ -16,8 +16,10 @@
 
 package com.palantir.gradle.graal
 
+import com.palantir.gradle.graal.util.JavaVersionUtil
 import nebula.test.ProjectSpec
 import org.gradle.api.GradleException
+import spock.lang.Requires
 
 class GradleExtensionSpec extends ProjectSpec {
     GraalExtension extension
@@ -92,11 +94,13 @@ class GradleExtensionSpec extends ProjectSpec {
         thrown GradleException
     }
 
+    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 8 })
     def 'extension returns the correct VS Vars Path for default Java version 8'() {
         expect:
         extension.getVsVarsPath().get() == "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
     }
 
+    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 11 })
     def 'extension returns the correct VS Vars Path for Java version 11 and set VS Version and Edition'() {
         when:
         extension.javaVersion("11")

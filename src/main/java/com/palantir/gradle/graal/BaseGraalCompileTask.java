@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
@@ -142,6 +143,10 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 // hide the output of SetEnv.cmd (an error that can safely be ignored and info messages)
                 // if Gradle isn't run with e.g. --info
                 outputRedirection = " >nul 2>&1";
+            }
+
+            if(!vsVarsPath.isPresent()) {
+                throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
             }
 
             String argsString = spec.getArgs().stream()

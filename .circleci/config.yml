@@ -46,7 +46,7 @@ jobs:
       - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - restore_cache: { key: 'graal-cache' }
-      - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
+      - run: (sudo apt-get update || sudo apt-get update) && sudo apt-get install build-essential zlib1g-dev
       - run: ./gradlew --profile --parallel --stacktrace --continue check
       - save_cache:
           key: 'graal-cache'
@@ -62,7 +62,7 @@ jobs:
       - restore_cache: { key: 'gradle-wrapper-v2-jdk11-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - restore_cache: { key: 'graal-cache' }
-      - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
+      - run: (sudo apt-get update || sudo apt-get update) && sudo apt-get install build-essential zlib1g-dev
       - run: ./gradlew --profile --parallel --stacktrace --continue check
       - save_cache:
           key: 'graal-cache'

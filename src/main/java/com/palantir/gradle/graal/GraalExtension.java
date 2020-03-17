@@ -149,11 +149,9 @@ public class GraalExtension {
                         .replaceAll("\\{version}", searchedVsVersion)
                         .replaceAll("\\{edition}", searchedVsEdition)
                 : WINDOWS_7_ENV_PATH;
-        if (searchedVsVarsPath == WINDOWS_7_ENV_PATH) {
+        if (WINDOWS_7_ENV_PATH.equals(searchedVsVarsPath)) {
             if (!new File(WINDOWS_7_ENV_PATH).exists()) {
-                throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM. "
-                                            + "Searched location: "
-                                            + searchedVsVarsPath);
+                return null;
             }
         }
         return searchedVsVarsPath;
