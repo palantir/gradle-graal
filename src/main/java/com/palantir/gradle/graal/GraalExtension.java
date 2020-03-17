@@ -144,6 +144,10 @@ public class GraalExtension {
     private String searchVsVarsPath() {
         String searchedVsVersion = vsVersion.getOrElse(getNewestVsVersionInstalled());
         String searchedVsEdition = vsEdition.getOrElse(getBiggestVsEditionInstalled(searchedVsVersion));
+        if (searchedVsEdition == null || searchedVsVersion == null) {
+            return "";
+        }
+
         String searchedVsVarsPath = Integer.parseInt(javaVersion.get()) >= 11
                 ? DEFAULT_VS_VARS_PATH
                         .replaceAll("\\{version}", searchedVsVersion)
@@ -151,32 +155,22 @@ public class GraalExtension {
                 : WINDOWS_7_ENV_PATH;
         if (WINDOWS_7_ENV_PATH.equals(searchedVsVarsPath)) {
             if (!new File(WINDOWS_7_ENV_PATH).exists()) {
-                return null;
+                return "";
             }
         }
         return searchedVsVarsPath;
     }
 
     private String getNewestVsVersionInstalled() {
-        File directory = new File(DEFAULT_VS_PATH);
-        String searchedVsVersion = FileUtil.getFirstFromDirectory(directory, SUPPORTED_VS_VERSIONS);
-        if (searchedVsVersion != null) {
-            return searchedVsVersion;
-        }
-        throw new GradleException("Couldn't find an installation of Visual Studio suitable for GraalVM. "
-                                      + "Supported versions are: "
-                                      + Arrays.asList(SUPPORTED_VS_VERSIONS));
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_VS_PATH), SUPPORTED_VS_VERSIONS);
     }
 
     private String getBiggestVsEditionInstalled(String version) {
-        File directory = new File(DEFAULT_VS_PATH, version);
-        String searchedVsEdition = FileUtil.getFirstFromDirectory(directory, SUPPORTED_VS_EDITIONS);
-        if (searchedVsEdition != null) {
-            return searchedVsEdition;
+        if (version == null) {
+            return null;
         }
-        throw new GradleException("Couldn't find an edition of Visual Studio suitable for GraalVM. "
-                                      + "Supported editions are: "
-                                      + Arrays.asList(SUPPORTED_VS_EDITIONS));
+
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_VS_PATH, version), SUPPORTED_VS_EDITIONS);
     }
 
     public final void vsVarsPath(String value) {

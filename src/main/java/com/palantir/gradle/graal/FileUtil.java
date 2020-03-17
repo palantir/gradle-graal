@@ -23,6 +23,10 @@ import java.util.List;
 
 public final class FileUtil {
     public static String getFirstFromDirectory(File directory, List<String> searchList) {
+        if (!directory.exists()) {
+            return null;
+        }
+
         AbstractSet<String> subDirectoriesNames = new HashSet<String>();
         File[] subDirectories = directory.listFiles(File::isDirectory);
         for (File subDirectory : subDirectories) {

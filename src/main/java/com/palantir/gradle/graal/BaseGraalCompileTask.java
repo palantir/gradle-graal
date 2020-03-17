@@ -145,7 +145,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 outputRedirection = " >nul 2>&1";
             }
 
-            if(!vsVarsPath.isPresent()) {
+            if (vsVarsPath.get().isEmpty()) {
                 throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
             }
 
