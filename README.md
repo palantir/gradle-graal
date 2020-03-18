@@ -28,9 +28,9 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
 * `javaVersion`: the Java version to use (can be either `8` or `11`, defaults to `8`)
     * for `8`: Windows SDK 7.1 will be used (`C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd`)
     * for `11`: Visual Studio Build Tools will be used (`C:\Program Files (x86)\Microsoft Visual Studio\{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat`)
-        * `vsVersion`: the version of Visual Studio to use (can be either `2017` or `2019`, by default a search will be performed and the newest will be selected)
-        * `vsEdition`: the edition of Visual Studio to use (can be either `Community`, `Professional` or `Enterprise`, by default a search will be performed and the biggest will be selected)
-        * `vsVarsPath`: path to vcvars64.bat (optional, if it's set it will disable the 2 searches for `vsVersion` and `vsEdition`)
+        * `windowsVsVersion`: the version of Visual Studio to use (can be either `2017` or `2019`, by default a search will be performed and the newest will be selected)
+        * `windowsVsEdition`: the edition of Visual Studio to use (can be either `Community`, `Professional` or `Enterprise`, by default a search will be performed and the biggest will be selected)
+        * `windowsVsVarsPath`: path to vcvars64.bat (optional, if it's set it will disable the 2 searches for `vsVersion` and `vsEdition`)
 
 
 **`native-image` controls**

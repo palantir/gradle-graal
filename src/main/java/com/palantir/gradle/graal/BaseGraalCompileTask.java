@@ -49,7 +49,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
-    private final Property<String> vsVarsPath = getProject().getObjects().property(String.class);
+    private final Property<String> windowsVsVarsPath = getProject().getObjects().property(String.class);
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = getProject().getObjects().fileProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
@@ -145,14 +145,14 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 outputRedirection = " >nul 2>&1";
             }
 
-            if (vsVarsPath.get().isEmpty()) {
+            if (windowsVsVarsPath.get().isEmpty()) {
                 throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
             }
 
             String argsString = spec.getArgs().stream()
                     .map(s -> "\"" + s + "\"")
                     .collect(Collectors.joining(" ", " ", "\r\n"));
-            String command = "call \"" + vsVarsPath.get() + "\"";
+            String command = "call \"" + windowsVsVarsPath.get() + "\"";
             String cmdContent = "@echo off\r\n"
                                 + command
                                 + outputRedirection + "\r\n"
@@ -212,12 +212,12 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     }
 
     @Input
-    public final Provider<String> getVsVarsPath() {
-        return vsVarsPath;
+    public final Provider<String> getWindowsVsVarsPath() {
+        return windowsVsVarsPath;
     }
 
-    public final void setVsVarsPath(Provider<String> provider) {
-        vsVarsPath.set(provider);
+    public final void setWindowsVsVarsPath(Provider<String> provider) {
+        windowsVsVarsPath.set(provider);
     }
 
     @InputFiles

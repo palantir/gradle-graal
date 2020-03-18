@@ -31,14 +31,19 @@ import org.gradle.api.provider.Provider;
 public class GraalExtension {
     private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\"
                                                      + "Windows\\v7.1\\Bin\\SetEnv.cmd";
-    private static final List<String> SUPPORTED_VS_VERSIONS = Arrays.asList("2019", "2017");
-    private static final List<String> SUPPORTED_VS_EDITIONS = Arrays.asList("Enterprise", "Professional", "Community");
-    private static final String DEFAULT_VS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio";
-    private static final String DEFAULT_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
-                                                       + "{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat";
+    private static final List<String> SUPPORTED_WINDOWS_VS_VERSIONS = Arrays.asList("2019", "2017");
+    private static final List<String> SUPPORTED_WINDOWS_VS_EDITIONS = Arrays.asList("Enterprise",
+                                                                                    "Professional",
+                                                                                    "Community");
+    private static final String DEFAULT_WINDOWS_VS_PATH = "C:\\Program Files (x86)\\"
+                                                          + "Microsoft Visual Studio";
+    private static final String DEFAULT_WINDOWS_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
+                                                               + "{version}\\{edition}\\VC\\Auxiliary\\"
+                                                               + "Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
-    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/releases/download/";
+    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/"
+                                                               + "releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
     private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
@@ -46,9 +51,9 @@ public class GraalExtension {
     private final Property<String> downloadBaseUrl;
     private final Property<String> graalVersion;
     private final Property<String> javaVersion;
-    private final Property<String> vsVarsPath;
-    private final Property<String> vsVersion;
-    private final Property<String> vsEdition;
+    private final Property<String> windowsVsVarsPath;
+    private final Property<String> windowsVsVersion;
+    private final Property<String> windowsVsEdition;
     private final Property<String> mainClass;
     private final Property<String> outputName;
     private final ListProperty<String> options;
@@ -57,9 +62,9 @@ public class GraalExtension {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
         javaVersion = project.getObjects().property(String.class);
-        vsVarsPath = project.getObjects().property(String.class);
-        vsVersion = project.getObjects().property(String.class);
-        vsEdition = project.getObjects().property(String.class);
+        windowsVsVarsPath = project.getObjects().property(String.class);
+        windowsVsVersion = project.getObjects().property(String.class);
+        windowsVsEdition = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
@@ -134,22 +139,25 @@ public class GraalExtension {
     /**
      * Returns the VS 64-bit Variables Path to use.
      *
-     * <p>Defaults to {@link #DEFAULT_VS_VARS_PATH} for JDK higher or equal to 11</p>
+     * <p>Defaults to {@link #DEFAULT_WINDOWS_VS_VARS_PATH} for JDK higher or equal to 11</p>
      * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK lower than 11</p>
      */
-    public final Provider<String> getVsVarsPath() {
-        return vsVarsPath.orElse(searchVsVarsPath());
+    public final Provider<String> getWindowsVsVarsPath() {
+        return windowsVsVarsPath
+                .orElse(searchWindowsVsVarsPath());
     }
 
-    private String searchVsVarsPath() {
-        String searchedVsVersion = vsVersion.getOrElse(getNewestVsVersionInstalled());
-        String searchedVsEdition = vsEdition.getOrElse(getBiggestVsEditionInstalled(searchedVsVersion));
+    private String searchWindowsVsVarsPath() {
+        String searchedVsVersion = windowsVsVersion
+                .getOrElse(getNewestWindowsVsVersionInstalled());
+        String searchedVsEdition = windowsVsEdition
+                .getOrElse(getBiggestWindowsVsEditionInstalled(searchedVsVersion));
         if (searchedVsEdition == null || searchedVsVersion == null) {
             return "";
         }
 
         String searchedVsVarsPath = Integer.parseInt(javaVersion.get()) >= 11
-                ? DEFAULT_VS_VARS_PATH
+                ? DEFAULT_WINDOWS_VS_VARS_PATH
                         .replaceAll("\\{version}", searchedVsVersion)
                         .replaceAll("\\{edition}", searchedVsEdition)
                 : WINDOWS_7_ENV_PATH;
@@ -161,28 +169,30 @@ public class GraalExtension {
         return searchedVsVarsPath;
     }
 
-    private String getNewestVsVersionInstalled() {
-        return FileUtil.getFirstFromDirectory(new File(DEFAULT_VS_PATH), SUPPORTED_VS_VERSIONS);
+    private String getNewestWindowsVsVersionInstalled() {
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH),
+                                              SUPPORTED_WINDOWS_VS_VERSIONS);
     }
 
-    private String getBiggestVsEditionInstalled(String version) {
+    private String getBiggestWindowsVsEditionInstalled(String version) {
         if (version == null) {
             return null;
         }
 
-        return FileUtil.getFirstFromDirectory(new File(DEFAULT_VS_PATH, version), SUPPORTED_VS_EDITIONS);
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH, version),
+                                              SUPPORTED_WINDOWS_VS_EDITIONS);
     }
 
-    public final void vsVarsPath(String value) {
-        vsVarsPath.set(value);
+    public final void windowsVsVarsPath(String value) {
+        windowsVsVarsPath.set(value);
     }
 
-    public final void vsVersion(String value) {
-        vsVersion.set(value);
+    public final void windowsVsVersion(String value) {
+        windowsVsVersion.set(value);
     }
 
-    public final void vsEdition(String value) {
-        vsEdition.set(value);
+    public final void windowsVsEdition(String value) {
+        windowsVsEdition.set(value);
     }
 
     /**

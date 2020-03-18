@@ -95,27 +95,27 @@ class GradleExtensionSpec extends ProjectSpec {
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 8 })
-    def 'extension returns the correct VS Vars Path for default Java version 8'() {
+    def 'extension returns the correct Windows VS Vars Path for default Java version 8'() {
         expect:
-        extension.getVsVarsPath().get() == "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
+        extension.getWindowsVsVarsPath().get() == "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 11 })
-    def 'extension returns the correct VS Vars Path for Java version 11 and set VS Version and Edition'() {
+    def 'extension returns the correct Windows VS Vars Path for Java version 11 and set Windows VS Version and Edition'() {
         when:
         extension.javaVersion("11")
-        extension.vsVersion("2019")
-        extension.vsEdition("Enterprise")
+        extension.windowsVsVersion("2019")
+        extension.windowsVsEdition("Enterprise")
 
         then:
-        extension.getVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat"
+        extension.getWindowsVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat"
     }
 
-    def 'extension returns the provided VS Vars Path'() {
+    def 'extension returns the provided Windows VS Vars Path'() {
         when:
-        extension.vsVarsPath("path")
+        extension.windowsVsVarsPath("path")
 
         then:
-        extension.getVsVarsPath().get() =~ "path"
+        extension.getWindowsVsVarsPath().get() =~ "path"
     }
 }
