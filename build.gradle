@@ -22,6 +22,7 @@ buildscript {
     }
 
     dependencies {
+        classpath 'com.palantir.javaformat:gradle-palantir-java-format:1.0.0'
         classpath 'com.netflix.nebula:gradle-info-plugin:7.1.3'
         classpath 'com.gradle.publish:plugin-publish-plugin:0.10.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
@@ -90,6 +91,9 @@ pluginBundle {
             displayName = 'Palantir Graal Plugin'
         }
     }
+allprojects {
+    apply plugin: 'com.palantir.java-format'
+}
 }
 
 tasks.withType(JavaCompile).configureEach {

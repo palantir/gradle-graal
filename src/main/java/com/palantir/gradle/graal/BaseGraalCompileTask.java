@@ -42,7 +42,6 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.process.ExecSpec;
 
-
 public abstract class BaseGraalCompileTask extends DefaultTask {
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
@@ -54,7 +53,9 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
 
     public BaseGraalCompileTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
-        this.outputFile.set(getProject().getLayout().getBuildDirectory()
+        this.outputFile.set(getProject()
+                .getLayout()
+                .getBuildDirectory()
                 .dir("graal")
                 .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
     }
@@ -109,9 +110,12 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
 
     private Path getArchitectureSpecifiedBinaryPath() {
         switch (Platform.operatingSystem()) {
-            case MAC: return Paths.get("Contents", "Home", "bin", "native-image");
-            case LINUX: return Paths.get("bin", "native-image");
-            case WINDOWS: return Paths.get("bin", "native-image.cmd");
+            case MAC:
+                return Paths.get("Contents", "Home", "bin", "native-image");
+            case LINUX:
+                return Paths.get("bin", "native-image");
+            case WINDOWS:
+                return Paths.get("bin", "native-image.cmd");
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -148,7 +152,8 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                     + outputRedirection + "\r\n"
                     + "\"" + spec.getExecutable() + "\"" + argsString;
             Path buildPath = getProject().getBuildDir().toPath();
-            Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
+            Path startCmd =
+                    buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
             try {
                 if (!Files.exists(startCmd.getParent())) {
                     Files.createDirectories(startCmd.getParent());
