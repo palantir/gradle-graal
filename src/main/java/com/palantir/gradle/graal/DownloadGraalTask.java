@@ -34,10 +34,10 @@ import org.gradle.api.tasks.TaskAction;
 public class DownloadGraalTask extends DefaultTask {
 
     // RC versions don't have a windows variant, so no [ext] is needed
-    private static final String ARTIFACT_PATTERN_RC_VERSION
-            = "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
-    private static final String ARTIFACT_PATTERN_RELEASE_VERSION
-            = "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].[ext]";
+    private static final String ARTIFACT_PATTERN_RC_VERSION =
+            "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_RELEASE_VERSION =
+            "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].[ext]";
 
     private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].[ext]";
 
@@ -57,8 +57,8 @@ public class DownloadGraalTask extends DefaultTask {
         Path cache = getCacheSubdirectory().get();
         Files.createDirectories(cache);
 
-        final String artifactPattern = isGraalRcVersion()
-                ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
+        final String artifactPattern =
+                isGraalRcVersion() ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
 
         try (InputStream in = new URL(render(artifactPattern)).openStream()) {
             Files.copy(in, getArchive().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -67,8 +67,8 @@ public class DownloadGraalTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getArchive() {
-        return getProject().getLayout()
-                .file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN)).toFile()));
+        return getProject().getLayout().file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN))
+                .toFile()));
     }
 
     @Input
@@ -94,8 +94,7 @@ public class DownloadGraalTask extends DefaultTask {
     }
 
     private String render(String pattern) {
-        return pattern
-                .replaceAll("\\[url\\]", downloadBaseUrl.get())
+        return pattern.replaceAll("\\[url\\]", downloadBaseUrl.get())
                 .replaceAll("\\[version\\]", graalVersion.get())
                 .replaceAll("\\[os\\]", getOperatingSystem())
                 .replaceAll("\\[arch\\]", getArchitecture())

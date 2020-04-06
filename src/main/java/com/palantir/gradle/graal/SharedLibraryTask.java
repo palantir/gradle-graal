@@ -29,9 +29,7 @@ import org.gradle.api.tasks.TaskAction;
 public class SharedLibraryTask extends BaseGraalCompileTask {
 
     public SharedLibraryTask() {
-        setDescription(
-                "Runs GraalVM's native-image command configured to produce a shared library."
-        );
+        setDescription("Runs GraalVM's native-image command configured to produce a shared library.");
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
         doLast(new LogAction());
     }
@@ -71,10 +69,11 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
     private final class LogAction implements Action<Task> {
         @Override
         public void execute(Task _task) {
-            getLogger().warn("shared library available at {} ({} MB)",
-                    getProject().relativePath(getOutputFile().get().getAsFile()),
-                    fileSizeMegabytes(getOutputFile().get()));
+            getLogger()
+                    .warn(
+                            "shared library available at {} ({} MB)",
+                            getProject().relativePath(getOutputFile().get().getAsFile()),
+                            fileSizeMegabytes(getOutputFile().get()));
         }
     }
-
 }

@@ -95,7 +95,6 @@ public class GraalExtension {
         return graalVersion;
     }
 
-
     public final Provider<List<String>> getOptions() {
         return this.options;
     }
@@ -109,5 +108,4 @@ public class GraalExtension {
         }
         this.options.add(option);
     }
-
 }
