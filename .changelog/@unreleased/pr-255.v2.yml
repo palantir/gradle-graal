@@ -1,0 +1,6 @@
+type: feature
+feature:
+  description: Add property javaVersion to support GraalVM 19.3+
+  links:
+  - https://github.com/palantir/dialogue/pull/255
+  - https://github.com/palantir/dialogue/pull/239
