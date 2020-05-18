@@ -18,18 +18,19 @@ buildscript {
     repositories {
         jcenter()
         gradlePluginPortal()
-        maven { url  "http://palantir.bintray.com/releases" }
+        maven { url  'https://palantir.bintray.com/releases'}
     }
 
     dependencies {
-        classpath 'com.netflix.nebula:gradle-info-plugin:5.2.0'
-        classpath 'com.gradle.publish:plugin-publish-plugin:0.10.0'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath 'com.netflix.nebula:nebula-publishing-plugin:14.1.1'
-        classpath 'com.palantir.baseline:gradle-baseline-java:2.41.0'
-        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.13.1'
-        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.2'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:3.1.0'
+        classpath 'com.palantir.javaformat:gradle-palantir-java-format:1.0.0'
+        classpath 'com.netflix.nebula:gradle-info-plugin:7.1.4'
+        classpath 'com.gradle.publish:plugin-publish-plugin:0.11.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:17.2.1'
+        classpath 'com.palantir.baseline:gradle-baseline-java:2.49.1'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.17.3'
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
+        classpath 'gradle.plugin.org.inferred:gradle-processors:3.3.0'
     }
 }
 
@@ -37,7 +38,7 @@ buildscript {
 repositories {
     jcenter()
     gradlePluginPortal()
-    maven { url  "http://palantir.bintray.com/releases" }
+    maven { url  'https://palantir.bintray.com/releases'}
 }
 
 apply plugin: 'com.gradle.plugin-publish'
@@ -51,6 +52,7 @@ apply plugin: 'java-gradle-plugin'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
+apply plugin: 'com.palantir.java-format'
 apply from: "${rootDir}/gradle/bintray-publish.gradle"
 
 group 'com.palantir.graal'
@@ -63,7 +65,6 @@ dependencies {
     testCompile gradleTestKit()
     testCompile 'com.netflix.nebula:nebula-test'
     testCompile 'com.squareup.okhttp3:mockwebserver'
-
 }
 
 gradlePlugin {
