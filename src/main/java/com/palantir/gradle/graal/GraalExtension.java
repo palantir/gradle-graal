@@ -29,21 +29,19 @@ import org.gradle.api.provider.Provider;
  * Contains options and settings for tuning GraalVM use.
  */
 public class GraalExtension {
-    private static final String WINDOWS_7_ENV_PATH = "C:\\Program Files\\Microsoft SDKs\\"
-                                                     + "Windows\\v7.1\\Bin\\SetEnv.cmd";
+    private static final String WINDOWS_7_ENV_PATH =
+            "C:\\Program Files\\Microsoft SDKs\\" + "Windows\\v7.1\\Bin\\SetEnv.cmd";
     private static final List<String> SUPPORTED_WINDOWS_VS_VERSIONS = Arrays.asList("2019", "2017");
-    private static final List<String> SUPPORTED_WINDOWS_VS_EDITIONS = Arrays.asList("Enterprise",
-                                                                                    "Professional",
-                                                                                    "Community");
-    private static final String DEFAULT_WINDOWS_VS_PATH = "C:\\Program Files (x86)\\"
-                                                          + "Microsoft Visual Studio";
+    private static final List<String> SUPPORTED_WINDOWS_VS_EDITIONS =
+            Arrays.asList("Enterprise", "Professional", "Community");
+    private static final String DEFAULT_WINDOWS_VS_PATH = "C:\\Program Files (x86)\\" + "Microsoft Visual Studio";
     private static final String DEFAULT_WINDOWS_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
-                                                               + "{version}\\{edition}\\VC\\Auxiliary\\"
-                                                               + "Build\\vcvars64.bat";
+            + "{version}\\{edition}\\VC\\Auxiliary\\"
+            + "Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
-    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 = "https://github.com/graalvm/graalvm-ce-builds/"
-                                                               + "releases/download/";
+    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
+            "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
     private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
@@ -85,8 +83,7 @@ public class GraalExtension {
      * <p>Defaults to {@link #DOWNLOAD_BASE_URL_GRAAL_19_3} for GraalVM higher or equal to 19.3.</p>
      */
     public final Provider<String> getDownloadBaseUrl() {
-        return downloadBaseUrl
-                .orElse(getDefaultDownloadBaseUrl());
+        return downloadBaseUrl.orElse(getDefaultDownloadBaseUrl());
     }
 
     public final void mainClass(String value) {
@@ -128,10 +125,8 @@ public class GraalExtension {
 
     public final void javaVersion(String value) {
         if (!SUPPORTED_JAVA_VERSIONS.contains(value)) {
-            throw new GradleException("Java version "
-                                      + value
-                                      + " is not supported. Supported versions are: "
-                                      + SUPPORTED_JAVA_VERSIONS);
+            throw new GradleException(
+                    "Java version " + value + " is not supported. Supported versions are: " + SUPPORTED_JAVA_VERSIONS);
         }
         javaVersion.set(value);
     }
@@ -143,15 +138,12 @@ public class GraalExtension {
      * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK lower than 11</p>
      */
     public final Provider<String> getWindowsVsVarsPath() {
-        return windowsVsVarsPath
-                .orElse(searchWindowsVsVarsPath());
+        return windowsVsVarsPath.orElse(searchWindowsVsVarsPath());
     }
 
     private String searchWindowsVsVarsPath() {
-        String searchedVsVersion = windowsVsVersion
-                .getOrElse(getNewestWindowsVsVersionInstalled());
-        String searchedVsEdition = windowsVsEdition
-                .getOrElse(getBiggestWindowsVsEditionInstalled(searchedVsVersion));
+        String searchedVsVersion = windowsVsVersion.getOrElse(getNewestWindowsVsVersionInstalled());
+        String searchedVsEdition = windowsVsEdition.getOrElse(getBiggestWindowsVsEditionInstalled(searchedVsVersion));
         if (searchedVsEdition == null || searchedVsVersion == null) {
             return "";
         }
@@ -170,8 +162,7 @@ public class GraalExtension {
     }
 
     private String getNewestWindowsVsVersionInstalled() {
-        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH),
-                                              SUPPORTED_WINDOWS_VS_VERSIONS);
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH), SUPPORTED_WINDOWS_VS_VERSIONS);
     }
 
     private String getBiggestWindowsVsEditionInstalled(String version) {
@@ -179,8 +170,8 @@ public class GraalExtension {
             return null;
         }
 
-        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH, version),
-                                              SUPPORTED_WINDOWS_VS_EDITIONS);
+        return FileUtil.getFirstFromDirectory(
+                new File(DEFAULT_WINDOWS_VS_PATH, version), SUPPORTED_WINDOWS_VS_EDITIONS);
     }
 
     public final void windowsVsVarsPath(String value) {

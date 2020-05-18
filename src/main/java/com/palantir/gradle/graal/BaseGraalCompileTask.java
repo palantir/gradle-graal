@@ -53,13 +53,16 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
     private final RegularFileProperty jarFile = getProject().getObjects().fileProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
-    private final Property<String> graalDirectoryName = getProject().getObjects().property(String.class);
+    private final Property<String> graalDirectoryName =
+            getProject().getObjects().property(String.class);
 
     public BaseGraalCompileTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
-        this.outputFile.set(getProject().getLayout().getBuildDirectory()
-                                    .dir("graal")
-                                    .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
+        this.outputFile.set(getProject()
+                .getLayout()
+                .getBuildDirectory()
+                .dir("graal")
+                .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
     }
 
     protected abstract String getArchitectureSpecifiedOutputExtension();
@@ -112,9 +115,12 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
 
     private Path getArchitectureSpecifiedBinaryPath() {
         switch (Platform.operatingSystem()) {
-            case MAC: return Paths.get("Contents", "Home", "bin", "native-image");
-            case LINUX: return Paths.get("bin", "native-image");
-            case WINDOWS: return Paths.get("bin", "native-image.cmd");
+            case MAC:
+                return Paths.get("Contents", "Home", "bin", "native-image");
+            case LINUX:
+                return Paths.get("bin", "native-image");
+            case WINDOWS:
+                return Paths.get("bin", "native-image.cmd");
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -149,16 +155,16 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
             }
 
-            String argsString = spec.getArgs().stream()
-                    .map(s -> "\"" + s + "\"")
-                    .collect(Collectors.joining(" ", " ", "\r\n"));
+            String argsString =
+                    spec.getArgs().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
             String command = "call \"" + windowsVsVarsPath.get() + "\"";
             String cmdContent = "@echo off\r\n"
-                                + command
-                                + outputRedirection + "\r\n"
-                                + "\"" + spec.getExecutable() + "\"" + argsString;
+                    + command
+                    + outputRedirection + "\r\n"
+                    + "\"" + spec.getExecutable() + "\"" + argsString;
             Path buildPath = getProject().getBuildDir().toPath();
-            Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
+            Path startCmd =
+                    buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
             try {
                 if (!Files.exists(startCmd.getParent())) {
                     Files.createDirectories(startCmd.getParent());

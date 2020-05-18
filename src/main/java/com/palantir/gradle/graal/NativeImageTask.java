@@ -83,9 +83,11 @@ public class NativeImageTask extends BaseGraalCompileTask {
     private final class LogAction implements Action<Task> {
         @Override
         public void execute(Task _task) {
-            getLogger().warn("native image available at {} ({} MB)",
-                    getProject().relativePath(getOutputFile().get().getAsFile()),
-                    fileSizeMegabytes(getOutputFile().get()));
+            getLogger()
+                    .warn(
+                            "native image available at {} ({} MB)",
+                            getProject().relativePath(getOutputFile().get().getAsFile()),
+                            fileSizeMegabytes(getOutputFile().get()));
         }
     }
 }

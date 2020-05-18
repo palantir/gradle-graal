@@ -48,7 +48,8 @@ public class ExtractGraalTask extends DefaultTask {
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
-    private final Property<String> graalDirectoryName = getProject().getObjects().property(String.class);
+    private final Property<String> graalDirectoryName =
+            getProject().getObjects().property(String.class);
 
     public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -56,12 +57,13 @@ public class ExtractGraalTask extends DefaultTask {
                 + " copy method.");
 
         onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
-        outputDirectory.set(cacheDir.map(cd -> getProject().getLayout().getProjectDirectory()
-                    .dir(cacheDir.get().toFile().getAbsolutePath())
-                    .dir(graalVersion.get())
-                    .dir(javaVersion.get())
-                    .dir(graalDirectoryName.get())
-        ));
+        outputDirectory.set(cacheDir.map(cd -> getProject()
+                .getLayout()
+                .getProjectDirectory()
+                .dir(cacheDir.get().toFile().getAbsolutePath())
+                .dir(graalVersion.get())
+                .dir(javaVersion.get())
+                .dir(graalDirectoryName.get())));
     }
 
     @TaskAction
@@ -122,7 +124,8 @@ public class ExtractGraalTask extends DefaultTask {
 
     private Path getArchitectureSpecifiedBinaryPath(String binaryName) {
         switch (Platform.operatingSystem()) {
-            case MAC: return Paths.get("Contents", "Home", "bin", binaryName);
+            case MAC:
+                return Paths.get("Contents", "Home", "bin", binaryName);
             case LINUX:
             case WINDOWS:
                 return Paths.get("bin", binaryName);
