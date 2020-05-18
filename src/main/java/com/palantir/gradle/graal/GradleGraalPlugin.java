@@ -62,6 +62,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks()
                 .register("downloadGraalTooling", DownloadGraalTask.class, task -> {
                     task.setGraalVersion(extension.getGraalVersion());
+                    task.setJavaVersion(extension.getJavaVersion());
                     task.setDownloadBaseUrl(extension.getDownloadBaseUrl());
                     task.setCacheDir(cacheDir);
                 });
@@ -69,8 +70,10 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks()
                 .register("extractGraalTooling", ExtractGraalTask.class, task -> {
                     task.setGraalVersion(extension.getGraalVersion());
+                    task.setJavaVersion(extension.getJavaVersion());
                     task.setInputArchive(downloadGraal.get().getArchive());
                     task.setCacheDir(cacheDir);
+                    task.setGraalDirectoryName(extension.getGraalDirectoryName());
                     task.dependsOn(downloadGraal);
                 });
 
@@ -79,9 +82,12 @@ public class GradleGraalPlugin implements Plugin<Project> {
             task.setMainClass(extension.getMainClass());
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
+            task.setJavaVersion(extension.getJavaVersion());
+            task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
             task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
             task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
             task.setCacheDir(cacheDir);
+            task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
             task.dependsOn(extractGraal);
             task.dependsOn(jar);
@@ -91,9 +97,12 @@ public class GradleGraalPlugin implements Plugin<Project> {
         project.getTasks().register("sharedLibrary", SharedLibraryTask.class, task -> {
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
+            task.setJavaVersion(extension.getJavaVersion());
+            task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
             task.setJarFile(sharedLibrary.map(j -> j.getOutputs().getFiles().getSingleFile()));
             task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
             task.setCacheDir(cacheDir);
+            task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
             task.dependsOn(extractGraal);
             task.dependsOn(sharedLibrary);

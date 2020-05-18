@@ -35,13 +35,14 @@ public class DownloadGraalTask extends DefaultTask {
 
     // RC versions don't have a windows variant, so no [ext] is needed
     private static final String ARTIFACT_PATTERN_RC_VERSION =
-            "[url]/vm-[version]/graalvm-ce-[version]-[os]-[arch].tar.gz";
+            "[url]/vm-[version]/graalvm-ce-[javaVersion]-[version]-[os]-[arch].tar.gz";
     private static final String ARTIFACT_PATTERN_RELEASE_VERSION =
-            "[url]/vm-[version]/graalvm-ce-[os]-[arch]-[version].[ext]";
+            "[url]/vm-[version]/graalvm-ce-[javaVersion]-[os]-[arch]-[version].[ext]";
 
-    private static final String FILENAME_PATTERN = "graalvm-ce-[version]-[arch].[ext]";
+    private static final String FILENAME_PATTERN = "graalvm-ce-[javaVersion]-[version]-[arch].[ext]";
 
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
@@ -54,8 +55,7 @@ public class DownloadGraalTask extends DefaultTask {
 
     @TaskAction
     public final void downloadGraal() throws IOException {
-        Path cache = getCacheSubdirectory().get();
-        Files.createDirectories(cache);
+        Files.createDirectories(getArchive().get().getAsFile().toPath().getParent());
 
         final String artifactPattern =
                 isGraalRcVersion() ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
@@ -67,7 +67,8 @@ public class DownloadGraalTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getArchive() {
-        return getProject().getLayout().file(getCacheSubdirectory().map(dir -> dir.resolve(render(FILENAME_PATTERN))
+        return getProject().getLayout().file(getCacheSubdirectory().map(dir -> dir.resolve(javaVersion.get())
+                .resolve(render(FILENAME_PATTERN))
                 .toFile()));
     }
 
@@ -78,6 +79,15 @@ public class DownloadGraalTask extends DefaultTask {
 
     public final void setGraalVersion(Provider<String> provider) {
         graalVersion.set(provider);
+    }
+
+    @Input
+    public final Provider<String> getJavaVersion() {
+        return javaVersion;
+    }
+
+    public final void setJavaVersion(Provider<String> provider) {
+        javaVersion.set(provider);
     }
 
     @Input
@@ -94,11 +104,16 @@ public class DownloadGraalTask extends DefaultTask {
     }
 
     private String render(String pattern) {
+        final String computedJavaVersion = GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())
+                ? "java" + javaVersion.get()
+                : ""; // for GraalVM >= 19.3 the naming contains java8 or java11
         return pattern.replaceAll("\\[url\\]", downloadBaseUrl.get())
                 .replaceAll("\\[version\\]", graalVersion.get())
+                .replaceAll("\\[javaVersion\\]", computedJavaVersion)
                 .replaceAll("\\[os\\]", getOperatingSystem())
                 .replaceAll("\\[arch\\]", getArchitecture())
-                .replaceAll("\\[ext\\]", getArchiveExtension());
+                .replaceAll("\\[ext\\]", getArchiveExtension())
+                .replaceAll("--", "-"); // for GraalVM < 19.3 there's only a Java8 package
     }
 
     private String getOperatingSystem() {

@@ -19,6 +19,25 @@ jobs:
           root: .
           paths: [ . ]
 
+  compile-jdk11:
+    docker: [{ image: 'circleci/openjdk:11-node' }]
+    resource_class: medium+
+    steps:
+      - checkout
+      - restore_cache: { key: 'gradle-wrapper-v2-jdk11-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - run: ./gradlew --profile --parallel --stacktrace resolveConfigurations
+      - save_cache:
+          key: 'gradle-wrapper-v2-jdk11-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}'
+          paths: [ ~/.gradle/wrapper ]
+      - save_cache:
+          key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}'
+          paths: [ ~/.gradle/caches ]
+      - run: ./gradlew --profile --parallel --stacktrace classes testClasses
+      - persist_to_workspace:
+          root: .
+          paths: [ . ]
+
   check:
     docker: [{ image: 'circleci/openjdk:8-node' }]
     resource_class: medium+
@@ -27,7 +46,23 @@ jobs:
       - restore_cache: { key: 'gradle-wrapper-v2-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - restore_cache: { key: 'graal-cache' }
-      - run: sudo apt-get update && sudo apt-get install build-essential zlib1g-dev
+      - run: (sudo apt-get update || sudo apt-get update) && sudo apt-get install build-essential zlib1g-dev
+      - run: ./gradlew --profile --parallel --stacktrace --continue check
+      - save_cache:
+          key: 'graal-cache'
+          paths: [ ~/.gradle/caches/com.palantir.graal ]
+      - store_test_results: { path: build/test-results }
+      - store_artifacts: { path: build/reports/tests }
+
+  check-jdk11:
+    docker: [{ image: 'circleci/openjdk:11-node' }]
+    resource_class: medium+
+    steps:
+      - attach_workspace: { at: . }
+      - restore_cache: { key: 'gradle-wrapper-v2-jdk11-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
+      - restore_cache: { key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
+      - restore_cache: { key: 'graal-cache' }
+      - run: (sudo apt-get update || sudo apt-get update) && sudo apt-get install build-essential zlib1g-dev
       - run: ./gradlew --profile --parallel --stacktrace --continue check
       - save_cache:
           key: 'graal-cache'
@@ -65,10 +100,17 @@ workflows:
           requires: [ compile ]
           filters: { tags: { only: /.*/ } }
 
+      - compile-jdk11:
+          filters: { tags: { only: /.*/ } }
+
+      - check-jdk11:
+          requires: [ compile-jdk11 ]
+          filters: { tags: { only: /.*/ } }
+
       - trial-publish:
           requires: [ compile ]
 
       - publish:
-          requires: [ check ]
+          requires: [ check, check-jdk11 ]
           filters: { tags: { only: /.*/ }, branches: { only: develop } }
 

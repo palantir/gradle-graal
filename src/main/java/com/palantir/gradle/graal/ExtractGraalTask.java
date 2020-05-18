@@ -45,8 +45,11 @@ public class ExtractGraalTask extends DefaultTask {
 
     private final RegularFileProperty inputArchive = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+    private final Property<String> javaVersion = getProject().getObjects().property(String.class);
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+    private final Property<String> graalDirectoryName =
+            getProject().getObjects().property(String.class);
 
     public ExtractGraalTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
@@ -54,12 +57,13 @@ public class ExtractGraalTask extends DefaultTask {
                 + " copy method.");
 
         onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
-        outputDirectory.set(graalVersion.map(v -> getProject()
+        outputDirectory.set(cacheDir.map(cd -> getProject()
                 .getLayout()
                 .getProjectDirectory()
                 .dir(cacheDir.get().toFile().getAbsolutePath())
-                .dir(v)
-                .dir("graalvm-ce-" + v)));
+                .dir(graalVersion.get())
+                .dir(javaVersion.get())
+                .dir(graalDirectoryName.get())));
     }
 
     @TaskAction
@@ -70,7 +74,7 @@ public class ExtractGraalTask extends DefaultTask {
 
         Project project = getProject();
         File inputArchiveFile = inputArchive.get().getAsFile();
-        Path versionedCacheDir = cacheDir.get().resolve(graalVersion.get());
+        Path versionedCacheDir = cacheDir.get().resolve(Paths.get(graalVersion.get(), javaVersion.get()));
 
         if (inputArchiveFile.getName().endsWith(".zip")) {
             project.copy(copySpec -> {
@@ -113,7 +117,7 @@ public class ExtractGraalTask extends DefaultTask {
         }
 
         return cacheDir.get()
-                .resolve(Paths.get(graalVersion.get(), "graalvm-ce-" + graalVersion.get()))
+                .resolve(Paths.get(graalVersion.get(), javaVersion.get(), graalDirectoryName.get()))
                 .resolve(getArchitectureSpecifiedBinaryPath(binaryName + binaryExtension))
                 .toFile();
     }
@@ -148,6 +152,15 @@ public class ExtractGraalTask extends DefaultTask {
         graalVersion.set(provider);
     }
 
+    @Input
+    public final Provider<String> getJavaVersion() {
+        return javaVersion;
+    }
+
+    public final void setJavaVersion(Provider<String> provider) {
+        javaVersion.set(provider);
+    }
+
     @OutputDirectory
     public final Provider<Directory> getOutputDirectory() {
         return outputDirectory;
@@ -155,5 +168,9 @@ public class ExtractGraalTask extends DefaultTask {
 
     final void setCacheDir(Path value) {
         cacheDir.set(value);
+    }
+
+    final void setGraalDirectoryName(String value) {
+        graalDirectoryName.set(value);
     }
 }

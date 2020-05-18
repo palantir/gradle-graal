@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.graal;
 
+import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -23,14 +25,33 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 
-/** Contains options and settings for tuning GraalVM use. */
+/**
+ * Contains options and settings for tuning GraalVM use.
+ */
 public class GraalExtension {
+    private static final String WINDOWS_7_ENV_PATH =
+            "C:\\Program Files\\Microsoft SDKs\\" + "Windows\\v7.1\\Bin\\SetEnv.cmd";
+    private static final List<String> SUPPORTED_WINDOWS_VS_VERSIONS = Arrays.asList("2019", "2017");
+    private static final List<String> SUPPORTED_WINDOWS_VS_EDITIONS =
+            Arrays.asList("Enterprise", "Professional", "Community");
+    private static final String DEFAULT_WINDOWS_VS_PATH = "C:\\Program Files (x86)\\" + "Microsoft Visual Studio";
+    private static final String DEFAULT_WINDOWS_VS_VARS_PATH = "C:\\Program Files (x86)\\Microsoft Visual Studio\\"
+            + "{version}\\{edition}\\VC\\Auxiliary\\"
+            + "Build\\vcvars64.bat";
 
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
-    private static final String DEFAULT_GRAAL_VERSION = "19.2.0";
+    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
+            "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
+    private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
+    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
+    private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
     private final Property<String> graalVersion;
+    private final Property<String> javaVersion;
+    private final Property<String> windowsVsVarsPath;
+    private final Property<String> windowsVsVersion;
+    private final Property<String> windowsVsEdition;
     private final Property<String> mainClass;
     private final Property<String> outputName;
     private final ListProperty<String> options;
@@ -38,13 +59,17 @@ public class GraalExtension {
     public GraalExtension(Project project) {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
+        javaVersion = project.getObjects().property(String.class);
+        windowsVsVarsPath = project.getObjects().property(String.class);
+        windowsVsVersion = project.getObjects().property(String.class);
+        windowsVsEdition = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
 
         // defaults
-        downloadBaseUrl.set(DEFAULT_DOWNLOAD_BASE_URL);
         graalVersion.set(DEFAULT_GRAAL_VERSION);
+        javaVersion.set(DEFAULT_JAVA_VERSION);
     }
 
     public final void downloadBaseUrl(String value) {
@@ -54,17 +79,20 @@ public class GraalExtension {
     /**
      * Returns the base URL to use for downloading GraalVM binaries.
      *
-     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL}.</p>
+     * <p>Defaults to {@link #DEFAULT_DOWNLOAD_BASE_URL} for GraalVM lower than 19.3.</p>
+     * <p>Defaults to {@link #DOWNLOAD_BASE_URL_GRAAL_19_3} for GraalVM higher or equal to 19.3.</p>
      */
     public final Provider<String> getDownloadBaseUrl() {
-        return downloadBaseUrl;
+        return downloadBaseUrl.orElse(getDefaultDownloadBaseUrl());
     }
 
     public final void mainClass(String value) {
         mainClass.set(value);
     }
 
-    /** Returns the main class to use as the entry point to the generated executable file. */
+    /**
+     * Returns the main class to use as the entry point to the generated executable file.
+     */
     public final Provider<String> getMainClass() {
         return mainClass;
     }
@@ -87,6 +115,78 @@ public class GraalExtension {
     }
 
     /**
+     * Returns the javaVersion for GraalVM to use.
+     *
+     * <p>Defaults to {@link #DEFAULT_JAVA_VERSION}</p>
+     */
+    public final Provider<String> getJavaVersion() {
+        return javaVersion;
+    }
+
+    public final void javaVersion(String value) {
+        if (!SUPPORTED_JAVA_VERSIONS.contains(value)) {
+            throw new GradleException(
+                    "Java version " + value + " is not supported. Supported versions are: " + SUPPORTED_JAVA_VERSIONS);
+        }
+        javaVersion.set(value);
+    }
+
+    /**
+     * Returns the VS 64-bit Variables Path to use.
+     *
+     * <p>Defaults to {@link #DEFAULT_WINDOWS_VS_VARS_PATH} for JDK higher or equal to 11</p>
+     * <p>Defaults to {@link #WINDOWS_7_ENV_PATH} for JDK lower than 11</p>
+     */
+    public final Provider<String> getWindowsVsVarsPath() {
+        return windowsVsVarsPath.orElse(searchWindowsVsVarsPath());
+    }
+
+    private String searchWindowsVsVarsPath() {
+        String searchedVsVersion = windowsVsVersion.getOrElse(getNewestWindowsVsVersionInstalled());
+        String searchedVsEdition = windowsVsEdition.getOrElse(getBiggestWindowsVsEditionInstalled(searchedVsVersion));
+        if (searchedVsEdition == null || searchedVsVersion == null) {
+            return "";
+        }
+
+        String searchedVsVarsPath = Integer.parseInt(javaVersion.get()) >= 11
+                ? DEFAULT_WINDOWS_VS_VARS_PATH
+                        .replaceAll("\\{version}", searchedVsVersion)
+                        .replaceAll("\\{edition}", searchedVsEdition)
+                : WINDOWS_7_ENV_PATH;
+        if (WINDOWS_7_ENV_PATH.equals(searchedVsVarsPath)) {
+            if (!new File(WINDOWS_7_ENV_PATH).exists()) {
+                return "";
+            }
+        }
+        return searchedVsVarsPath;
+    }
+
+    private String getNewestWindowsVsVersionInstalled() {
+        return FileUtil.getFirstFromDirectory(new File(DEFAULT_WINDOWS_VS_PATH), SUPPORTED_WINDOWS_VS_VERSIONS);
+    }
+
+    private String getBiggestWindowsVsEditionInstalled(String version) {
+        if (version == null) {
+            return null;
+        }
+
+        return FileUtil.getFirstFromDirectory(
+                new File(DEFAULT_WINDOWS_VS_PATH, version), SUPPORTED_WINDOWS_VS_EDITIONS);
+    }
+
+    public final void windowsVsVarsPath(String value) {
+        windowsVsVarsPath.set(value);
+    }
+
+    public final void windowsVsVersion(String value) {
+        windowsVsVersion.set(value);
+    }
+
+    public final void windowsVsEdition(String value) {
+        windowsVsEdition.set(value);
+    }
+
+    /**
      * Returns the graalVersion of GraalVM to use.
      *
      * <p>Defaults to {@link #DEFAULT_GRAAL_VERSION}</p>
@@ -96,7 +196,7 @@ public class GraalExtension {
     }
 
     public final Provider<List<String>> getOptions() {
-        return this.options;
+        return options;
     }
 
     /**
@@ -107,5 +207,22 @@ public class GraalExtension {
             throw new GradleException("Use 'outputName' instead of '" + option + "'");
         }
         this.options.add(option);
+    }
+
+    public final String getGraalDirectoryName() {
+        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+            return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
+        }
+
+        return "graalvm-ce-" + graalVersion.get();
+    }
+
+    private String getDefaultDownloadBaseUrl() {
+        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+            return DOWNLOAD_BASE_URL_GRAAL_19_3;
+        } else if (!javaVersion.get().equals("8")) {
+            throw new GradleException("Unsupported Java version for GraalVM version.");
+        }
+        return DEFAULT_DOWNLOAD_BASE_URL;
     }
 }
