@@ -34,9 +34,6 @@ jobs:
           key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}'
           paths: [ ~/.gradle/caches ]
       - run: ./gradlew --profile --parallel --stacktrace classes testClasses
-      - persist_to_workspace:
-          root: .
-          paths: [ . ]
 
   check:
     docker: [{ image: 'circleci/openjdk:8-node' }]
@@ -58,7 +55,7 @@ jobs:
     docker: [{ image: 'circleci/openjdk:11-node' }]
     resource_class: medium+
     steps:
-      - attach_workspace: { at: . }
+      - checkout
       - restore_cache: { key: 'gradle-wrapper-v2-jdk11-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}' }
       - restore_cache: { key: 'gradle-cache-v2-jdk11-{{ checksum "versions.props" }}-{{ checksum "build.gradle" }}' }
       - restore_cache: { key: 'graal-cache' }
