@@ -34,7 +34,7 @@ class GradleExtensionSpec extends ProjectSpec {
 
         then:
         extension.getDownloadBaseUrl().get() =~ "https://github.com/oracle/graal/releases/download/"
-        extension.getGraalDirectoryName() =~ "graalvm-ce-19.2.0"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-19.2.0"
     }
 
     def 'extension returns the correct Graal download URL and directory name for default Java version and graalVersion 19.3.0'() {
@@ -43,7 +43,7 @@ class GradleExtensionSpec extends ProjectSpec {
 
         then:
         extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName() =~ "graalvm-ce-java8-19.3.0"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java8-19.3.0"
     }
 
     def 'extension returns the correct Graal download URL and directory name for Java version 8 and graalVersion 19.2.0'() {
@@ -53,7 +53,7 @@ class GradleExtensionSpec extends ProjectSpec {
 
         then:
         extension.getDownloadBaseUrl().get() =~ "https://github.com/oracle/graal/releases/download/"
-        extension.getGraalDirectoryName() =~ "graalvm-ce-19.2.0"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-19.2.0"
     }
 
     def 'extension returns the correct Graal download URL and directory name for Java version 8 and graalVersion 19.3.0'() {
@@ -63,14 +63,14 @@ class GradleExtensionSpec extends ProjectSpec {
 
         then:
         extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName() =~ "graalvm-ce-java8-19.3.0"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java8-19.3.0"
     }
 
     def 'extension should throw exception for graalVersion 19.2.0 and Java version 11'() {
         when:
         extension.javaVersion("11")
         extension.graalVersion("19.2.0")
-        extension.getDownloadBaseUrl()
+        extension.getDownloadBaseUrl().get()
 
         then:
         thrown GradleException
@@ -83,7 +83,7 @@ class GradleExtensionSpec extends ProjectSpec {
 
         then:
         extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName() =~ "graalvm-ce-java11-19.3.0"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java11-19.3.0"
     }
 
     def 'extension should throw exception for unsupported Java version'() {
