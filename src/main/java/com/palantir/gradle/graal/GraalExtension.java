@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 
 /**
  * Contains options and settings for tuning GraalVM use.
@@ -56,6 +57,8 @@ public class GraalExtension {
     private final Property<String> outputName;
     private final ListProperty<String> options;
 
+    private ProviderFactory providerFactory;
+
     public GraalExtension(Project project) {
         downloadBaseUrl = project.getObjects().property(String.class);
         graalVersion = project.getObjects().property(String.class);
@@ -66,6 +69,7 @@ public class GraalExtension {
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
+        providerFactory = project.getProviders();
 
         // defaults
         graalVersion.set(DEFAULT_GRAAL_VERSION);
@@ -209,12 +213,13 @@ public class GraalExtension {
         this.options.add(option);
     }
 
-    public final String getGraalDirectoryName() {
-        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
-            return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
-        }
-
-        return "graalvm-ce-" + graalVersion.get();
+    public final Provider<String> getGraalDirectoryName() {
+        return providerFactory.provider(() -> {
+            if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+                return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
+            }
+            return "graalvm-ce-" + graalVersion.get();
+        });
     }
 
     private String getDefaultDownloadBaseUrl() {

@@ -41,7 +41,7 @@ public class ExtractGraalTask extends DefaultTask {
      * These binaries get .cmd as their filename extension, instead of .cmd (on Windows).
      */
     private static final Set<String> WINDOWS_CMD_BINARIES =
-            new HashSet<>(Arrays.asList("native-image", "native-image-configure", "polyglot"));
+            new HashSet<>(Arrays.asList("native-image", "native-image-configure", "polyglot", "gu"));
 
     private final RegularFileProperty inputArchive = getProject().getObjects().fileProperty();
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
@@ -170,7 +170,7 @@ public class ExtractGraalTask extends DefaultTask {
         cacheDir.set(value);
     }
 
-    final void setGraalDirectoryName(String value) {
+    final void setGraalDirectoryName(Provider<String> value) {
         graalDirectoryName.set(value);
     }
 }

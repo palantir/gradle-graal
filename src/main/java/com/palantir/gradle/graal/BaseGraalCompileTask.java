@@ -258,7 +258,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         cacheDir.set(value);
     }
 
-    final void setGraalDirectoryName(String value) {
+    final void setGraalDirectoryName(Provider<String> value) {
         graalDirectoryName.set(value);
     }
 
