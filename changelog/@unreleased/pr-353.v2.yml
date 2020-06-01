@@ -1,0 +1,7 @@
+type: fix
+fix:
+  description: Fix gu on Windows and multi-module project path.
+  links:
+  - https://github.com/palantir/gradle-graal/pull/353
+  - https://github.com/palantir/gradle-graal/issues/352
+  - https://github.com/palantir/gradle-graal/issues/344
