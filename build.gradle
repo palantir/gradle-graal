@@ -23,12 +23,12 @@ buildscript {
 
     dependencies {
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:1.0.0'
-        classpath 'com.netflix.nebula:gradle-info-plugin:7.1.4'
+        classpath 'com.netflix.nebula:gradle-info-plugin:8.2.0'
         classpath 'com.gradle.publish:plugin-publish-plugin:0.12.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
         classpath 'com.netflix.nebula:nebula-publishing-plugin:17.2.1'
         classpath 'com.palantir.baseline:gradle-baseline-java:2.49.1'
-        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.20.0'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:1.23.0'
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
         classpath 'gradle.plugin.org.inferred:gradle-processors:3.3.0'
     }
