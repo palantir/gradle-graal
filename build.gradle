@@ -45,15 +45,12 @@ apply plugin: 'com.gradle.plugin-publish'
 apply plugin: 'com.palantir.baseline'
 apply plugin: 'com.palantir.git-version'
 apply plugin: 'com.palantir.consistent-versions'
-apply plugin: 'nebula.maven-publish'
-apply plugin: 'nebula.source-jar'
 apply plugin: 'org.inferred.processors'
 apply plugin: 'java-gradle-plugin'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
-apply plugin: 'idea'
 apply plugin: 'com.palantir.java-format'
-apply from: "${rootDir}/gradle/bintray-publish.gradle"
+apply from: "${rootDir}/gradle/publish-jar.gradle"
 
 group 'com.palantir.graal'
 version gitVersion()
