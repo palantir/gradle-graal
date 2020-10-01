@@ -93,6 +93,10 @@ pluginBundle {
     }
 }
 
+publishPlugins.onlyIf {
+    versionDetails().isCleanTag
+}
+
 tasks.withType(JavaCompile).configureEach {
     options.errorprone.errorproneArgs += [
             '-Xep:PreferSafeLoggableExceptions:OFF',
