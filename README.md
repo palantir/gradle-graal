@@ -32,6 +32,11 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
         * `windowsVsEdition`: the edition of Visual Studio to use (can be either `Community`, `Professional` or `Enterprise`, by default a search will be performed and the biggest will be selected)
         * `windowsVsVarsPath`: path to vcvars64.bat (optional, if it's set it will disable the 2 searches for `vsVersion` and `vsEdition`)
 
+**Code selection controls**
+* `jarTaskName`: the task on the current project that emits a `.jar` file whose contents are the
+  current module's contributions to the executable file. This defaults to 'jar'.
+* `configurationName`: the `Configuration` of the current project to use when selecting dependencies
+  to contribute to the executable file. This defaults to 'runtimeClasspath'.
 
 **`native-image` controls**
 * `outputName`: the name to use for the image output

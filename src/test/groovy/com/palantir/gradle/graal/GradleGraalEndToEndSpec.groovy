@@ -545,4 +545,48 @@ class GradleGraalEndToEndSpec extends IntegrationSpec {
         }
     }
 
+    @Requires({ JavaVersionUtil.runtimeMajorVersion() == 8 })
+    def 'test custom jarName and configurationName'() {
+        setup:
+        directory("src/test/java/com/palantir/test")
+        file("src/test/java/com/palantir/test/Main.java") << '''
+        package com.palantir.test;
+
+        public final class Main {
+            public static final void main(String[] args) {
+                System.out.println("hello, test!");
+            }
+        }
+        '''
+
+        buildFile << '''
+        apply plugin: 'com.palantir.graal'
+
+        task testJar(type: Jar) {
+            classifier "test"
+            from project.sourceSets.test.output
+        }
+
+        graal {
+            mainClass 'com.palantir.test.Main'
+            jarTaskName 'testJar'
+            configurationName 'testRuntimeClasspath'
+            outputName 'hello-test'
+        }
+        '''
+
+        when:
+        ExecutionResult result = runTasksSuccessfully('nativeImage') // note, this accesses your real ~/.gradle cache
+        println "Gradle Standard Out:\n" + result.standardOutput
+        println "Gradle Standard Error:\n" + result.standardError
+        def outputPath = "build/graal/hello-test"
+        if (Platform.operatingSystem() == WINDOWS) {
+            outputPath += ".exe"
+        }
+        File output = new File(getProjectDir(), outputPath)
+
+        then:
+        output.exists()
+        output.getAbsolutePath().execute().text.equals("hello, test!" + System.lineSeparator())
+    }
 }

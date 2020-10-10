@@ -45,6 +45,8 @@ public class GraalExtension {
             "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
     private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
+    private static final String DEFAULT_JAR_TASK_NAME = "jar";
+    private static final String DEFAULT_CONFIGURATION_NAME = "runtimeClasspath";
     private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
@@ -53,6 +55,8 @@ public class GraalExtension {
     private final Property<String> windowsVsVarsPath;
     private final Property<String> windowsVsVersion;
     private final Property<String> windowsVsEdition;
+    private final Property<String> jarTaskName;
+    private final Property<String> configurationName;
     private final Property<String> mainClass;
     private final Property<String> outputName;
     private final ListProperty<String> options;
@@ -66,6 +70,8 @@ public class GraalExtension {
         windowsVsVarsPath = project.getObjects().property(String.class);
         windowsVsVersion = project.getObjects().property(String.class);
         windowsVsEdition = project.getObjects().property(String.class);
+        jarTaskName = project.getObjects().property(String.class);
+        configurationName = project.getObjects().property(String.class);
         mainClass = project.getObjects().property(String.class);
         outputName = project.getObjects().property(String.class);
         options = project.getObjects().listProperty(String.class).empty(); // .empty() required to initialize
@@ -74,6 +80,8 @@ public class GraalExtension {
         // defaults
         graalVersion.set(DEFAULT_GRAAL_VERSION);
         javaVersion.set(DEFAULT_JAVA_VERSION);
+        jarTaskName.set(DEFAULT_JAR_TASK_NAME);
+        configurationName.set(DEFAULT_CONFIGURATION_NAME);
     }
 
     public final void downloadBaseUrl(String value) {
@@ -99,6 +107,32 @@ public class GraalExtension {
      */
     public final Provider<String> getMainClass() {
         return mainClass;
+    }
+
+    public final void jarTaskName(String value) {
+        jarTaskName.set(value);
+    }
+
+    /**
+     * Returns the task that emits a {@code .jar} file, whose classes are the current module's
+     * contributions to the executable file. This defaults to "jar". Typically this changes with
+     * {@link #configurationName}.
+     */
+    public final Provider<String> getJarTaskName() {
+        return jarTaskName;
+    }
+
+    public final void configurationName(String value) {
+        configurationName.set(value);
+    }
+
+    /**
+     * Returns the configuration name to use when selecting classpath dependencies for the generated
+     * executable file. This defaults to "runtimeClasspath". Typically this changes with {@link
+     * #jarTaskName}.
+     */
+    public final Provider<String> getConfigurationName() {
+        return configurationName;
     }
 
     public final void outputName(String value) {

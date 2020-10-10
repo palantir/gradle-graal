@@ -16,12 +16,16 @@
 
 package com.palantir.gradle.graal;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Transformer;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.jvm.tasks.Jar;
 
@@ -77,15 +81,23 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.dependsOn(downloadGraal);
                 });
 
-        TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");
+        Provider<File> jar = extension.getJarTaskName().flatMap((Transformer<Provider<File>, String>) name -> {
+            TaskProvider<Jar> provider = project.getTasks().withType(Jar.class).named(name);
+            return provider.map(jarTask -> jarTask.getOutputs().getFiles().getSingleFile());
+        });
+
+        Provider<Configuration> configuration = extension.getConfigurationName().flatMap((Transformer<
+                        Provider<Configuration>, String>)
+                name -> project.getConfigurations().named(name));
+
         project.getTasks().register("nativeImage", NativeImageTask.class, task -> {
             task.setMainClass(extension.getMainClass());
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
             task.setJavaVersion(extension.getJavaVersion());
             task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
-            task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
-            task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+            task.setJarFile(jar);
+            task.setClasspath(configuration);
             task.setCacheDir(cacheDir);
             task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
@@ -99,8 +111,8 @@ public class GradleGraalPlugin implements Plugin<Project> {
             task.setGraalVersion(extension.getGraalVersion());
             task.setJavaVersion(extension.getJavaVersion());
             task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
-            task.setJarFile(sharedLibrary.map(j -> j.getOutputs().getFiles().getSingleFile()));
-            task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+            task.setJarFile(jar);
+            task.setClasspath(configuration);
             task.setCacheDir(cacheDir);
             task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
