@@ -23,7 +23,7 @@ Configuration
 Configure this plugin and its wrappers around GraalVM tools through the `graal` extension with the following options:
 
 **General GraalVM controls**
-* `graalVersion`: the version string to use when downloading GraalVM (defaults to `20.0.0`)
+* `graalVersion`: the version string to use when downloading GraalVM (defaults to `20.2.0`)
 * `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/oracle/graal/releases/download/`)
 * `javaVersion`: the Java version to use (can be either `8` or `11`, defaults to `8`)
     * for `8`: Windows SDK 7.1 will be used (`C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd`)

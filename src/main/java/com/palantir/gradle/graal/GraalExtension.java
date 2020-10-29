@@ -43,7 +43,7 @@ public class GraalExtension {
     private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
             "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
-    private static final String DEFAULT_GRAAL_VERSION = "20.0.0";
+    private static final String DEFAULT_GRAAL_VERSION = "20.2.0";
     private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
 
