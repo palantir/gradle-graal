@@ -65,6 +65,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
                 .map(d -> d.file(outputName.get() + getArchitectureSpecifiedOutputExtension())));
     }
 
+    @Input
     protected abstract String getArchitectureSpecifiedOutputExtension();
 
     protected final File maybeCreateOutputDirectory() throws IOException {
@@ -73,6 +74,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         return directory;
     }
 
+    @Input
     protected final String getExecutable() {
         return cacheDir.get()
                 .resolve(Paths.get(graalVersion.get(), javaVersion.get(), graalDirectoryName.get()))
@@ -266,15 +268,8 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         this.options.set(options);
     }
 
+    @Input
     public final ListProperty<String> getOptions() {
         return options;
-    }
-
-    public final RegularFileProperty getJarFile() {
-        return jarFile;
-    }
-
-    public final Property<Path> getCacheDir() {
-        return cacheDir;
     }
 }
