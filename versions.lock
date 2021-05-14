@@ -3,7 +3,7 @@
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
 com.google.code.findbugs:jsr305:3.0.2 (2 constraints: 1d0fb186)
-com.google.errorprone:error_prone_annotations:2.6.0 (2 constraints: 230f2287)
+com.google.errorprone:error_prone_annotations:2.7.1 (2 constraints: 250f6487)
 com.google.guava:failureaccess:1.0.1 (1 constraints: 140ae1b4)
 com.google.guava:guava:30.1.1-jre (2 constraints: c2136c67)
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
