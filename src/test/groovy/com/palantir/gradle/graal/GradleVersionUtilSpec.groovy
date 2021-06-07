@@ -23,16 +23,26 @@ import spock.lang.Specification
 class GradleVersionUtilSpec extends Specification {
     def 'should detect Graal version 19.2.0 is not 19.3+'() {
         expect:
-        !GraalVersionUtil.isGraalVersionGreatherThan19_3("19.2.0")
+        !GraalVersionUtil.isGraalVersionGreaterOrEqualThan("19.2.0", 19, 3)
     }
 
-    def 'should detect Graal version 19.3.0 is not 19.3+'() {
+    def 'should detect Graal version 19.3.0 is 19.3+'() {
         expect:
-        GraalVersionUtil.isGraalVersionGreatherThan19_3("19.3.0")
+        GraalVersionUtil.isGraalVersionGreaterOrEqualThan("19.3.0", 19, 3)
     }
 
     def 'should detect Graal version empty is not 19.3+'() {
         expect:
-        !GraalVersionUtil.isGraalVersionGreatherThan19_3("")
+        !GraalVersionUtil.isGraalVersionGreaterOrEqualThan("", 19, 3)
+    }
+
+    def 'should detect Graal version 21.1.0 is 21.1+'() {
+        expect:
+        GraalVersionUtil.isGraalVersionGreaterOrEqualThan("21.1.0", 21, 1)
+    }
+
+    def 'should detect Graal version 21.0.0 is not 21.1+'() {
+        expect:
+        !GraalVersionUtil.isGraalVersionGreaterOrEqualThan("21.0.0", 21, 1)
     }
 }

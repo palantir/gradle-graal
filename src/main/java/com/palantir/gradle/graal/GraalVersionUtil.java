@@ -17,12 +17,12 @@
 package com.palantir.gradle.graal;
 
 public final class GraalVersionUtil {
-    public static boolean isGraalVersionGreatherThan19_3(String graalVersion) {
+    public static boolean isGraalVersionGreaterOrEqualThan(String graalVersion, int majorVersion, int minorVersion) {
         try {
             final String[] versionSplit = graalVersion.split("\\.", -1);
-            final int majorVersion = Integer.valueOf(versionSplit[0]);
-            final int minorVersion = Integer.valueOf(versionSplit[1]);
-            return majorVersion > 19 || (majorVersion == 19 && minorVersion >= 3);
+            final int majorVersion0 = Integer.valueOf(versionSplit[0]);
+            final int minorVersion0 = Integer.valueOf(versionSplit[1]);
+            return majorVersion0 > majorVersion || (majorVersion0 == majorVersion && minorVersion0 >= minorVersion);
         } catch (NumberFormatException ignored) {
             return false;
         }

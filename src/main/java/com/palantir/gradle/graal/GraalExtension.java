@@ -44,7 +44,7 @@ public class GraalExtension {
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
             "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "20.2.0";
-    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("11", "8");
+    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("16", "11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
@@ -215,7 +215,7 @@ public class GraalExtension {
 
     public final Provider<String> getGraalDirectoryName() {
         return providerFactory.provider(() -> {
-            if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+            if (GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)) {
                 return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
             }
             return "graalvm-ce-" + graalVersion.get();
@@ -223,7 +223,11 @@ public class GraalExtension {
     }
 
     private String getDefaultDownloadBaseUrl() {
-        if (GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())) {
+        if (javaVersion.get().equals("16")
+                && !GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 21, 1)) {
+            throw new GradleException(
+                    "Unsupported GraalVM version " + graalVersion.get() + " for Java 16, needs >= 21.1.0.");
+        } else if (GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)) {
             return DOWNLOAD_BASE_URL_GRAAL_19_3;
         } else if (!javaVersion.get().equals("8")) {
             throw new GradleException("Unsupported Java version for GraalVM version.");
