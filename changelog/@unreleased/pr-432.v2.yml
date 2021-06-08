@@ -1,5 +1,5 @@
 type: feature
-improvement:
+feature:
   description: Support Java 16 for GraalVM 21.1.0 and greater
   links:
     - https://github.com/palantir/gradle-graal/pull/432
