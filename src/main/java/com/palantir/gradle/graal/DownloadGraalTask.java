@@ -104,7 +104,7 @@ public class DownloadGraalTask extends DefaultTask {
     }
 
     private String render(String pattern) {
-        final String computedJavaVersion = GraalVersionUtil.isGraalVersionGreatherThan19_3(graalVersion.get())
+        final String computedJavaVersion = GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)
                 ? "java" + javaVersion.get()
                 : ""; // for GraalVM >= 19.3 the naming contains java8 or java11
         return pattern.replaceAll("\\[url\\]", downloadBaseUrl.get())
