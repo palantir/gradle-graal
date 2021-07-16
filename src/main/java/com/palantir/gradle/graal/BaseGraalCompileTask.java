@@ -56,7 +56,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     private final Property<String> graalDirectoryName =
             getProject().getObjects().property(String.class);
 
-    public BaseGraalCompileTask() {
+    protected BaseGraalCompileTask() {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         this.outputFile.set(getProject()
                 .getLayout()
