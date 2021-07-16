@@ -56,8 +56,8 @@ public class ExtractGraalTask extends DefaultTask {
         setDescription("Extracts GraalVM tooling from downloaded archive using the system's tar command or Gradle's"
                 + " copy method.");
 
-        onlyIf(task -> !getOutputDirectory().get().getAsFile().exists());
-        outputDirectory.set(cacheDir.map(cd -> getProject()
+        onlyIf(_task -> !getOutputDirectory().get().getAsFile().exists());
+        outputDirectory.set(cacheDir.map(_cd -> getProject()
                 .getLayout()
                 .getProjectDirectory()
                 .dir(cacheDir.get().toFile().getAbsolutePath())
