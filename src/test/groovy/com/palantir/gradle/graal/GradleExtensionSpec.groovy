@@ -106,6 +106,26 @@ class GradleExtensionSpec extends ProjectSpec {
         extension.getGraalDirectoryName().get() =~ "graalvm-ce-java16-21.1.0"
     }
 
+    def 'extension should throw exception for graalVersion 21.1.0 and Java version 17'() {
+        when:
+        extension.javaVersion("17")
+        extension.graalVersion("21.1.0")
+        extension.getDownloadBaseUrl().get()
+
+        then:
+        thrown GradleException
+    }
+
+    def 'extension returns the correct Graal download URL and directory name for Java version 17 and graalVersion 21.3.0'() {
+        when:
+        extension.javaVersion("17")
+        extension.graalVersion("21.3.0")
+
+        then:
+        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
+        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java17-21.3.0"
+    }
+
     def 'extension should throw exception for unsupported Java version'() {
         when:
         extension.javaVersion("12")
