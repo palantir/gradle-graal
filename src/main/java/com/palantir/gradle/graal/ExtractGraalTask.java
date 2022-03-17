@@ -84,22 +84,25 @@ public class ExtractGraalTask extends DefaultTask {
         } else {
             // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
             project.exec(spec -> {
-                spec.executable("tar");
-                spec.args("-xzf", inputArchiveFile.getAbsolutePath());
-                spec.workingDir(versionedCacheDir);
-            });
+                        spec.executable("tar");
+                        spec.args("-xzf", inputArchiveFile.getAbsolutePath());
+                        spec.workingDir(versionedCacheDir);
+                    })
+                    .assertNormalExitValue();
         }
 
         File nativeImageExecutable = getExecutable("native-image");
         if (!nativeImageExecutable.isFile()) {
             project.exec(spec -> {
-                File graalUpdateExecutable = getExecutable("gu");
-                if (!graalUpdateExecutable.isFile()) {
-                    throw new IllegalStateException("Failed to find Graal update binary: " + graalUpdateExecutable);
-                }
-                spec.executable(graalUpdateExecutable.getAbsolutePath());
-                spec.args("install", "native-image");
-            });
+                        File graalUpdateExecutable = getExecutable("gu");
+                        if (!graalUpdateExecutable.isFile()) {
+                            throw new IllegalStateException(
+                                    "Failed to find Graal update binary: " + graalUpdateExecutable);
+                        }
+                        spec.executable(graalUpdateExecutable.getAbsolutePath());
+                        spec.args("install", "native-image");
+                    })
+                    .assertNormalExitValue();
         }
     }
 

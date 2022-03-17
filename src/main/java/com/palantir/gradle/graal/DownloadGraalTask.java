@@ -36,6 +36,8 @@ public class DownloadGraalTask extends DefaultTask {
     // RC versions don't have a windows variant, so no [ext] is needed
     private static final String ARTIFACT_PATTERN_RC_VERSION =
             "[url]/vm-[version]/graalvm-ce-[javaVersion]-[version]-[os]-[arch].tar.gz";
+    private static final String ARTIFACT_PATTERN_DEV_VERSION =
+            "[url]/[version]/graalvm-ce-[javaVersion]-[os]-[arch]-dev.[ext]";
     private static final String ARTIFACT_PATTERN_RELEASE_VERSION =
             "[url]/vm-[version]/graalvm-ce-[javaVersion]-[os]-[arch]-[version].[ext]";
 
@@ -57,8 +59,11 @@ public class DownloadGraalTask extends DefaultTask {
     public final void downloadGraal() throws IOException {
         Files.createDirectories(getArchive().get().getAsFile().toPath().getParent());
 
-        final String artifactPattern =
-                isGraalRcVersion() ? ARTIFACT_PATTERN_RC_VERSION : ARTIFACT_PATTERN_RELEASE_VERSION;
+        final String artifactPattern = GraalVersionUtil.isGraalRcVersion(graalVersion.get())
+                ? ARTIFACT_PATTERN_RC_VERSION
+                : (GraalVersionUtil.isGraalDevVersion(graalVersion.get())
+                        ? ARTIFACT_PATTERN_DEV_VERSION
+                        : ARTIFACT_PATTERN_RELEASE_VERSION);
 
         try (InputStream in = new URL(render(artifactPattern)).openStream()) {
             Files.copy(in, getArchive().get().getAsFile().toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -119,7 +124,7 @@ public class DownloadGraalTask extends DefaultTask {
     private String getOperatingSystem() {
         switch (Platform.operatingSystem()) {
             case MAC:
-                return isGraalRcVersion() ? "macos" : "darwin";
+                return GraalVersionUtil.isGraalRcVersion(graalVersion.get()) ? "macos" : "darwin";
             case LINUX:
                 return "linux";
             case WINDOWS:
@@ -148,10 +153,6 @@ public class DownloadGraalTask extends DefaultTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
-    }
-
-    private boolean isGraalRcVersion() {
-        return graalVersion.get().startsWith("1.0.0-rc");
     }
 
     final void setCacheDir(Path value) {

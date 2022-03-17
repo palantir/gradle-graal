@@ -40,9 +40,13 @@ public class GraalExtension {
             + "{version}\\{edition}\\VC\\Auxiliary\\"
             + "Build\\vcvars64.bat";
 
-    private static final String DEFAULT_DOWNLOAD_BASE_URL = "https://github.com/oracle/graal/releases/download/";
+    private static final String RELEASES_DOWNLOAD_POSTFIX = "/releases/download/";
+    private static final String DEFAULT_DOWNLOAD_BASE_URL =
+            "https://github.com/oracle/graal" + RELEASES_DOWNLOAD_POSTFIX;
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
-            "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
+            "https://github.com/graalvm/graalvm-ce-builds" + RELEASES_DOWNLOAD_POSTFIX;
+    private static final String DOWNLOAD_BASE_DEV =
+            "https://github.com/graalvm/graalvm-ce-dev-builds" + RELEASES_DOWNLOAD_POSTFIX;
     private static final String DEFAULT_GRAAL_VERSION = "20.2.0";
     private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("17", "16", "11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
@@ -215,10 +219,14 @@ public class GraalExtension {
 
     public final Provider<String> getGraalDirectoryName() {
         return providerFactory.provider(() -> {
-            if (GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)) {
+            if (GraalVersionUtil.isGraalDevVersion(graalVersion.get())) {
+                return "graalvm-ce-java" + javaVersion.get() + "-"
+                        + GraalVersionUtil.cutDevSignature(graalVersion.get());
+            } else if (GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)) {
                 return "graalvm-ce-java" + javaVersion.get() + "-" + graalVersion.get();
+            } else {
+                return "graalvm-ce-" + graalVersion.get();
             }
-            return "graalvm-ce-" + graalVersion.get();
         });
     }
 
@@ -231,6 +239,8 @@ public class GraalExtension {
                 && !GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 21, 1)) {
             throw new GradleException(
                     "Unsupported GraalVM version " + graalVersion.get() + " for Java 16, needs >= 21.1.0.");
+        } else if (GraalVersionUtil.isGraalDevVersion(graalVersion.get())) {
+            return DOWNLOAD_BASE_DEV;
         } else if (GraalVersionUtil.isGraalVersionGreaterOrEqualThan(graalVersion.get(), 19, 3)) {
             return DOWNLOAD_BASE_URL_GRAAL_19_3;
         } else if (!javaVersion.get().equals("8")) {

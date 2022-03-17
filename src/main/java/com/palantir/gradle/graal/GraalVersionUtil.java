@@ -28,5 +28,18 @@ public final class GraalVersionUtil {
         }
     }
 
+    public static boolean isGraalRcVersion(String graalVersion) {
+        return graalVersion.startsWith("1.0.0-rc");
+    }
+
+    public static boolean isGraalDevVersion(String graalVersion) {
+        return graalVersion.contains("-dev-");
+    }
+
+    // 22.1.0-dev-20220314_2252 -> 22.1.0-dev
+    public static String cutDevSignature(String graalVersion) {
+        return graalVersion.substring(0, graalVersion.indexOf("-dev") + 4);
+    }
+
     private GraalVersionUtil() {}
 }
