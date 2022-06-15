@@ -50,7 +50,7 @@ public class DownloadGraalTask extends DefaultTask {
         setGroup(GradleGraalPlugin.TASK_GROUP);
         setDescription("Downloads and caches GraalVM binaries.");
 
-        onlyIf(task -> !getArchive().get().getAsFile().exists());
+        onlyIf(_task -> !getArchive().get().getAsFile().exists());
     }
 
     @TaskAction
