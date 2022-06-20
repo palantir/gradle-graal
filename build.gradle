@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import net.ltgt.gradle.errorprone.CheckSeverity
 
 buildscript {
     repositories {
@@ -21,45 +22,48 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.4.0'
-        classpath 'com.palantir.javaformat:gradle-palantir-java-format:1.0.1'
-        classpath 'com.gradle.publish:plugin-publish-plugin:0.16.0'
-        classpath 'com.palantir.baseline:gradle-baseline-java:2.49.2'
-        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.1.0'
-        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.3'
+        classpath 'com.gradle.publish:plugin-publish-plugin:0.21.0'
+        classpath 'com.palantir.baseline:gradle-baseline-java:4.145.0'
+        classpath 'com.palantir.gradle.conjure:gradle-conjure:5.28.0'
+        classpath 'com.palantir.gradle.consistentversions:gradle-consistent-versions:2.11.0'
+        classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:1.11.0'
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.15.0'
+        classpath 'com.palantir.gradle.jdks:gradle-jdks:0.18.0'
+        classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.2.0'
+        classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.24.0'
         classpath 'gradle.plugin.org.inferred:gradle-processors:3.6.0'
     }
 }
 
+apply plugin: 'java-gradle-plugin'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+
+apply plugin: 'com.gradle.plugin-publish'
+apply plugin: 'com.palantir.baseline'
+apply plugin: 'com.palantir.baseline-java-versions'
+apply plugin: 'com.palantir.consistent-versions'
+apply plugin: 'com.palantir.external-publish'
+apply plugin: 'com.palantir.git-version'
+apply plugin: 'com.palantir.java-format'
+apply plugin: 'nebula.maven-publish'
+apply plugin: 'nebula.source-jar'
+apply plugin: 'org.inferred.processors'
+
+group 'com.palantir.graal'
+version gitVersion()
 
 repositories {
     mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
 }
 
-apply plugin: 'com.palantir.external-publish'
-apply plugin: 'com.gradle.plugin-publish'
-apply plugin: 'com.palantir.baseline'
-apply plugin: 'com.palantir.git-version'
-apply plugin: 'com.palantir.consistent-versions'
-apply plugin: 'nebula.maven-publish'
-apply plugin: 'nebula.source-jar'
-apply plugin: 'org.inferred.processors'
-apply plugin: 'java-gradle-plugin'
-apply plugin: 'groovy'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
-apply plugin: 'com.palantir.java-format'
-
-group 'com.palantir.graal'
-version gitVersion()
-
 dependencies {
-    compile localGroovy()
-    compile gradleApi()
+    implementation localGroovy()
+    implementation gradleApi()
 
-    testCompile gradleTestKit()
-    testCompile 'com.netflix.nebula:nebula-test'
-    testCompile 'com.squareup.okhttp3:mockwebserver'
+    testImplementation gradleTestKit()
+    testImplementation 'com.netflix.nebula:nebula-test'
+    testImplementation 'com.squareup.okhttp3:mockwebserver'
 }
 
 gradlePlugin {
@@ -92,9 +96,17 @@ publishPlugins.onlyIf {
     versionDetails().isCleanTag
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.errorprone.errorproneArgs += [
-            '-Xep:PreferSafeLoggableExceptions:OFF',
-            '-Xep:PreferSafeLoggingPreconditions:OFF',
-    ]
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ['-Werror']
+    options.errorprone {
+        check("PreferSafeLogger", CheckSeverity.OFF)
+        check("PreferSafeLoggingPreconditions", CheckSeverity.OFF)
+        check("PreferSafeLoggableExceptions", CheckSeverity.OFF)
+        check("Slf4jLogsafeArgs", CheckSeverity.OFF)
+    }
+}
+
+javaVersions {
+    libraryTarget = 11
+    runtime = 17
 }
