@@ -67,12 +67,10 @@ dependencies {
 }
 
 gradlePlugin {
-    // do not add new task to publish to plugins.gradle.org
-    automatedPublishing = false
-
     plugins {
         graal {
             id = 'com.palantir.graal'
+            displayName = 'Palantir Graal Plugin'
             implementationClass = 'com.palantir.gradle.graal.GradleGraalPlugin'
         }
     }
@@ -83,17 +81,6 @@ pluginBundle {
     vcsUrl = 'https://github.com/palantir/gradle-graal'
     description = 'A plugin for Gradle that adds tasks to download, extract and interact with GraalVM tooling.'
     tags = ['graal', 'native-image']
-
-    plugins {
-        graal {
-            id = 'com.palantir.graal'
-            displayName = 'Palantir Graal Plugin'
-        }
-    }
-}
-
-publishPlugins.onlyIf {
-    versionDetails().isCleanTag
 }
 
 tasks.withType(JavaCompile) {
