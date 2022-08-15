@@ -19,11 +19,13 @@ package com.palantir.gradle.graal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.jvm.tasks.Jar;
 
 /**
  * Adds tasks to download, extract and interact with GraalVM tooling.
@@ -51,6 +53,8 @@ public class GradleGraalPlugin implements Plugin<Project> {
         project.getPluginManager().apply(JavaPlugin.class);
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
+        boolean multiplatform = project.getPluginManager().hasPlugin("org.jetbrains.kotlin.multiplatform");
+
         Path cacheDir = Optional.ofNullable((String) project.findProperty("com.palantir.graal.cache.dir"))
                 .map(Paths::get)
                 .orElseGet(() -> project.getGradle()
@@ -77,15 +81,20 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.dependsOn(downloadGraal);
                 });
 
-        TaskProvider<Jar> jar = project.getTasks().withType(Jar.class).named("jar");
+        String jarTask = multiplatform ? "jvmJar" : "jar";
+        TaskProvider<Task> jar = project.getTasks().named(jarTask);
+        String runtimeClasspathName = multiplatform ? "jvmRuntimeClasspath" : "runtimeClasspath";
+        NamedDomainObjectProvider<Configuration> runtimeClasspath = project.getConfigurations().named(runtimeClasspathName);
+
         project.getTasks().register("nativeImage", NativeImageTask.class, task -> {
+
             task.setMainClass(extension.getMainClass());
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
             task.setJavaVersion(extension.getJavaVersion());
             task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
             task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
-            task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+            task.setClasspath(runtimeClasspath);
             task.setCacheDir(cacheDir);
             task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
@@ -93,19 +102,18 @@ public class GradleGraalPlugin implements Plugin<Project> {
             task.dependsOn(jar);
         });
 
-        TaskProvider<Jar> sharedLibrary = project.getTasks().withType(Jar.class).named("jar");
         project.getTasks().register("sharedLibrary", SharedLibraryTask.class, task -> {
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
             task.setJavaVersion(extension.getJavaVersion());
             task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
-            task.setJarFile(sharedLibrary.map(j -> j.getOutputs().getFiles().getSingleFile()));
-            task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
+            task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
+            task.setClasspath(runtimeClasspath);
             task.setCacheDir(cacheDir);
             task.setGraalDirectoryName(extension.getGraalDirectoryName());
             task.setOptions(extension.getOptions());
             task.dependsOn(extractGraal);
-            task.dependsOn(sharedLibrary);
+            task.dependsOn(jar);
         });
     }
 }
