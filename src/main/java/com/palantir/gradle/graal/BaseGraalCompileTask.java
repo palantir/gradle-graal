@@ -182,7 +182,7 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
             // delayed environment variable expansion via !
             cmdArgs.add("/V:ON");
             cmdArgs.add("/c");
-            cmdArgs.add("\"" + startCmd  + "\"");
+            cmdArgs.add("\"" + startCmd + "\"");
             spec.setExecutable("cmd.exe");
             spec.setArgs(cmdArgs);
         }
