@@ -133,6 +133,8 @@ public class DownloadGraalTask extends DefaultTask {
         switch (Platform.architecture()) {
             case AMD64:
                 return "amd64";
+            case AARCH64:
+                return "aarch64";
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
         }

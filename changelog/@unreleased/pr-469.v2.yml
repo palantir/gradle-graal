@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Support aarch64 architectures
+  links:
+  - https://github.com/palantir/gradle-graal/pull/469

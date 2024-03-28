@@ -29,6 +29,7 @@ public final class Platform {
 
     public enum Architecture {
         AMD64,
+        AARCH64,
         UNKNOWN
     }
 
@@ -46,7 +47,9 @@ public final class Platform {
 
     public static Architecture architecture() {
         String arch = System.getProperty("os.arch");
-        if (arch.contains("64")) {
+        if (arch.contains("aarch64")) {
+            return Architecture.AARCH64;
+        } else if (arch.contains("64")) {
             return Architecture.AMD64;
         }
         return Architecture.UNKNOWN;
