@@ -1,4 +1,4 @@
-# Run ./gradlew writeVersionsLock to regenerate this file
+# Run ./gradlew writeVersionsLocks to regenerate this file
 
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
