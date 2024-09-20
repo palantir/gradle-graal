@@ -23,7 +23,7 @@ buildscript {
 
     dependencies {
         classpath 'com.palantir.jakartapackagealignment:jakarta-package-alignment:0.6.0'
-        classpath 'com.palantir.gradle.jdks:gradle-jdks:0.37.0'
+        classpath 'com.palantir.gradle.jdks:gradle-jdks:0.47.0'
         classpath 'com.palantir.gradle.jdkslatest:gradle-jdks-latest:0.13.0'
         classpath 'com.gradle.publish:plugin-publish-plugin:1.3.0'
         classpath 'com.palantir.baseline:gradle-baseline-java:5.61.0'
@@ -51,6 +51,7 @@ apply plugin: 'com.palantir.external-publish-jar'
 apply plugin: 'com.palantir.failure-reports'
 apply plugin: 'com.palantir.git-version'
 apply plugin: 'com.palantir.java-format'
+apply plugin: 'com.palantir.jdks'
 apply plugin: 'com.palantir.jdks.latest'
 apply plugin: 'org.inferred.processors'
 
@@ -100,4 +101,8 @@ tasks.withType(JavaCompile) {
 javaVersions {
     libraryTarget = 11
     runtime = 17
+}
+
+jdks {
+    daemonTarget = 17
 }
