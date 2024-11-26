@@ -1,0 +1,5 @@
+type: feature
+feature:
+  description: Support Java 19 for GraalVM 22.3.0
+  links:
+    - https://github.com/palantir/gradle-graal/pull/525

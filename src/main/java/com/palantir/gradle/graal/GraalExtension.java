@@ -44,7 +44,7 @@ public class GraalExtension {
     private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
             "https://github.com/graalvm/graalvm-ce-builds/" + "releases/download/";
     private static final String DEFAULT_GRAAL_VERSION = "20.2.0";
-    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("17", "16", "11", "8");
+    private static final List<String> SUPPORTED_JAVA_VERSIONS = Arrays.asList("19", "17", "16", "11", "8");
     private static final String DEFAULT_JAVA_VERSION = "8";
 
     private final Property<String> downloadBaseUrl;
