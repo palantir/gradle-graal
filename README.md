@@ -26,19 +26,13 @@ Configure this plugin and its wrappers around GraalVM tools through the `graal` 
 
 **General GraalVM controls**
 * `graalVersion`: the version string to use when downloading GraalVM (defaults to `20.2.0`)
-* `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/oracle/graal/releases/download/`)
-* `javaVersion`: the Java version to use (can be either `8` or `11`, defaults to `8`)
-    * for `8`: Windows SDK 7.1 will be used (`C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd`)
-    * for `11`: Visual Studio Build Tools will be used (`C:\Program Files (x86)\Microsoft Visual Studio\{version}\\{edition}\\VC\\Auxiliary\\Build\\vcvars64.bat`)
-        * `windowsVsVersion`: the version of Visual Studio to use (can be either `2017` or `2019`, by default a search will be performed and the newest will be selected)
-        * `windowsVsEdition`: the edition of Visual Studio to use (can be either `Community`, `Professional` or `Enterprise`, by default a search will be performed and the biggest will be selected)
-        * `windowsVsVarsPath`: path to vcvars64.bat (optional, if it's set it will disable the 2 searches for `vsVersion` and `vsEdition`)
+* `downloadBaseUrl`: the base download URL to use (defaults to `https://github.com/graalvm/graalvm-ce-builds/releases/download/`)
 
 
 **`native-image` controls**
 * `outputName`: the name to use for the image output
 * `mainClass`: the main class entry-point for the image to run
-* `option`: additional native-image options (see https://github.com/oracle/graal/blob/master/docs/reference-manual/native-image/Options.md)
+* `option`: additional native-image options (see https://www.graalvm.org/21.3/reference-manual/native-image/Options/)
 
 Local GraalVM Tooling Cache
 ---------------------------

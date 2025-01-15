@@ -44,7 +44,7 @@ public class NativeImageTask extends BaseGraalCompileTask {
      * Returns a platform-dependent file extension for executables.
      *
      * @return an empty String on {@link Platform.OperatingSystem#MAC MAC} and
-     *         {@link Platform.OperatingSystem#LINUX LINUX}, ".exe" on {@link Platform.OperatingSystem#WINDOWS WINDOWS}
+     *         {@link Platform.OperatingSystem#LINUX LINUX}
      */
     @Override
     protected String getArchitectureSpecifiedOutputExtension() {
@@ -52,8 +52,6 @@ public class NativeImageTask extends BaseGraalCompileTask {
             case MAC:
             case LINUX:
                 return "";
-            case WINDOWS:
-                return ".exe";
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -67,7 +65,6 @@ public class NativeImageTask extends BaseGraalCompileTask {
         getProject().exec(spec -> {
             spec.setExecutable(getExecutable());
             spec.setArgs(args);
-            configurePlatformSpecifics(spec);
         });
     }
 

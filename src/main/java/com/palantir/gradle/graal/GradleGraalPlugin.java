@@ -37,9 +37,9 @@ import org.gradle.jvm.tasks.Jar;
  * <pre>
  * ~/.gradle/caches/com.palantir.graal/
  * └── [version]/
- *     ├── graalvm-ce-[version]/
- *     │   └── [local architecture-specific GraalVM tooling]
- *     └── graalvm-ce-[version]-amd64.tar.gz
+ *     ├── graalvm-community-jdk-[version]/
+ *     │    └── [local architecture-specific GraalVM tooling]
+ *     └── graalvm-community-jdk-[version]-amd64.tar.gz
  * </pre>
  */
 public class GradleGraalPlugin implements Plugin<Project> {
@@ -62,7 +62,6 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<DownloadGraalTask> downloadGraal = project.getTasks()
                 .register("downloadGraalTooling", DownloadGraalTask.class, task -> {
                     task.setGraalVersion(extension.getGraalVersion());
-                    task.setJavaVersion(extension.getJavaVersion());
                     task.setDownloadBaseUrl(extension.getDownloadBaseUrl());
                     task.setCacheDir(cacheDir);
                 });
@@ -70,7 +69,6 @@ public class GradleGraalPlugin implements Plugin<Project> {
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks()
                 .register("extractGraalTooling", ExtractGraalTask.class, task -> {
                     task.setGraalVersion(extension.getGraalVersion());
-                    task.setJavaVersion(extension.getJavaVersion());
                     task.setInputArchive(downloadGraal.get().getArchive());
                     task.setCacheDir(cacheDir);
                     task.setGraalDirectoryName(extension.getGraalDirectoryName());
@@ -82,8 +80,6 @@ public class GradleGraalPlugin implements Plugin<Project> {
             task.setMainClass(extension.getMainClass());
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
-            task.setJavaVersion(extension.getJavaVersion());
-            task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
             task.setJarFile(jar.map(j -> j.getOutputs().getFiles().getSingleFile()));
             task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
             task.setCacheDir(cacheDir);
@@ -97,8 +93,6 @@ public class GradleGraalPlugin implements Plugin<Project> {
         project.getTasks().register("sharedLibrary", SharedLibraryTask.class, task -> {
             task.setOutputName(extension.getOutputName());
             task.setGraalVersion(extension.getGraalVersion());
-            task.setJavaVersion(extension.getJavaVersion());
-            task.setWindowsVsVarsPath(extension.getWindowsVsVarsPath());
             task.setJarFile(sharedLibrary.map(j -> j.getOutputs().getFiles().getSingleFile()));
             task.setClasspath(project.getConfigurations().named("runtimeClasspath"));
             task.setCacheDir(cacheDir);

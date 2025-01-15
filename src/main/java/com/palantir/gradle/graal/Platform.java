@@ -16,40 +16,47 @@
 
 package com.palantir.gradle.graal;
 
+import java.util.Locale;
+import java.util.Set;
+
 /** Utility methods for keying on operating system architecture and native code tooling. */
 // TODO(melliot): replace this with the Gradle-native implementations (see NativePlatform) once promoted from incubating
 public final class Platform {
 
     public enum OperatingSystem {
         MAC,
-        LINUX,
-        WINDOWS,
-        UNKNOWN
+        LINUX;
     }
 
     public enum Architecture {
-        AMD64,
-        UNKNOWN
+        X86_64,
+        AARCH64;
     }
 
     public static OperatingSystem operatingSystem() {
-        String os = System.getProperty("os.name").toLowerCase();
+        String os = System.getProperty("os.name").toLowerCase(Locale.ROOT);
         if (os.contains("mac")) {
             return OperatingSystem.MAC;
         } else if (os.contains("linux")) {
             return OperatingSystem.LINUX;
         } else if (os.contains("win")) {
-            return OperatingSystem.WINDOWS;
+            throw new UnsupportedOperationException("Windows is not yet supported");
         }
-        return OperatingSystem.UNKNOWN;
+        throw new UnsupportedOperationException("Cannot get operating system for " + os);
     }
 
     public static Architecture architecture() {
-        String arch = System.getProperty("os.arch");
-        if (arch.contains("64")) {
-            return Architecture.AMD64;
+        String arch = System.getProperty("os.arch").toLowerCase(Locale.ROOT);
+
+        if (Set.of("x86_64", "x64", "amd64").contains(arch)) {
+            return Architecture.X86_64;
         }
-        return Architecture.UNKNOWN;
+
+        if (Set.of("arm", "arm64", "aarch64").contains(arch)) {
+            return Architecture.AARCH64;
+        }
+
+        throw new UnsupportedOperationException("Cannot get architecture for " + arch);
     }
 
     private Platform() {}

@@ -38,7 +38,7 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
      * Returns a platform-dependent file extension for libraries.
      *
      * @return ".dylib" on {@link Platform.OperatingSystem#MAC MAC}, ".so" on
-     *          {@link Platform.OperatingSystem#LINUX LINUX}, ".dll" on {@link Platform.OperatingSystem#WINDOWS WINDOWS}
+     *          {@link Platform.OperatingSystem#LINUX LINUX}
      */
     @Override
     protected String getArchitectureSpecifiedOutputExtension() {
@@ -47,8 +47,6 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
                 return ".dylib";
             case LINUX:
                 return ".so";
-            case WINDOWS:
-                return ".dll";
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
@@ -62,7 +60,6 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         getProject().exec(spec -> {
             spec.setExecutable(getExecutable());
             spec.setArgs(args);
-            configurePlatformSpecifics(spec);
         });
     }
 

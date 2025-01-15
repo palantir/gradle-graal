@@ -16,10 +16,7 @@
 
 package com.palantir.gradle.graal
 
-import com.palantir.gradle.graal.util.JavaVersionUtil
 import nebula.test.ProjectSpec
-import org.gradle.api.GradleException
-import spock.lang.Requires
 
 class GradleExtensionSpec extends ProjectSpec {
     GraalExtension extension
@@ -28,134 +25,13 @@ class GradleExtensionSpec extends ProjectSpec {
         extension = new GraalExtension(project)
     }
 
-    def 'extension returns the correct Graal download URL and directory name for default Java version and graalVersion 19.2.0'() {
+    def 'extension returns the correct Graal download URL and directory name for graalVersion 21.3.0'() {
         when:
-        extension.graalVersion("19.2.0")
+        extension.graalVersion("21.0.3")
 
         then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/oracle/graal/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-19.2.0"
+        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download"
+        extension.getGraalDirectoryName().get() =~ "graalvm-community-jdk-21.0.3"
     }
 
-    def 'extension returns the correct Graal download URL and directory name for default Java version and graalVersion 19.3.0'() {
-        when:
-        extension.graalVersion("19.3.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java8-19.3.0"
-    }
-
-    def 'extension returns the correct Graal download URL and directory name for Java version 8 and graalVersion 19.2.0'() {
-        when:
-        extension.javaVersion("8")
-        extension.graalVersion("19.2.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/oracle/graal/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-19.2.0"
-    }
-
-    def 'extension returns the correct Graal download URL and directory name for Java version 8 and graalVersion 19.3.0'() {
-        when:
-        extension.javaVersion("8")
-        extension.graalVersion("19.3.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java8-19.3.0"
-    }
-
-    def 'extension should throw exception for graalVersion 19.2.0 and Java version 11'() {
-        when:
-        extension.javaVersion("11")
-        extension.graalVersion("19.2.0")
-        extension.getDownloadBaseUrl().get()
-
-        then:
-        thrown GradleException
-    }
-
-    def 'extension returns the correct Graal download URL and directory name for Java version 11 and graalVersion 19.3.0'() {
-        when:
-        extension.javaVersion("11")
-        extension.graalVersion("19.3.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java11-19.3.0"
-    }
-
-    def 'extension should throw exception for graalVersion 21.0.0 and Java version 16'() {
-        when:
-        extension.javaVersion("16")
-        extension.graalVersion("21.0.0")
-        extension.getDownloadBaseUrl().get()
-
-        then:
-        thrown GradleException
-    }
-
-    def 'extension returns the correct Graal download URL and directory name for Java version 16 and graalVersion 21.1.0'() {
-        when:
-        extension.javaVersion("16")
-        extension.graalVersion("21.1.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java16-21.1.0"
-    }
-
-    def 'extension should throw exception for graalVersion 21.1.0 and Java version 17'() {
-        when:
-        extension.javaVersion("17")
-        extension.graalVersion("21.1.0")
-        extension.getDownloadBaseUrl().get()
-
-        then:
-        thrown GradleException
-    }
-
-    def 'extension returns the correct Graal download URL and directory name for Java version 17 and graalVersion 21.3.0'() {
-        when:
-        extension.javaVersion("17")
-        extension.graalVersion("21.3.0")
-
-        then:
-        extension.getDownloadBaseUrl().get() =~ "https://github.com/graalvm/graalvm-ce-builds/releases/download/"
-        extension.getGraalDirectoryName().get() =~ "graalvm-ce-java17-21.3.0"
-    }
-
-    def 'extension should throw exception for unsupported Java version'() {
-        when:
-        extension.javaVersion("12")
-
-        then:
-        thrown GradleException
-    }
-
-    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 8 })
-    def 'extension returns the correct Windows VS Vars Path for default Java version 8'() {
-        expect:
-        extension.getWindowsVsVarsPath().get() == "C:\\Program Files\\Microsoft SDKs\\Windows\\v7.1\\Bin\\SetEnv.cmd"
-    }
-
-    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS && JavaVersionUtil.runtimeMajorVersion() == 11 })
-    def 'extension returns the correct Windows VS Vars Path for Java version 11 and set Windows VS Version and Edition'() {
-        when:
-        extension.javaVersion("11")
-        extension.windowsVsVersion("2019")
-        extension.windowsVsEdition("Enterprise")
-
-        then:
-        extension.getWindowsVsVarsPath().get() == "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat"
-    }
-
-    def 'extension returns the provided Windows VS Vars Path'() {
-        when:
-        extension.windowsVsVarsPath("path")
-
-        then:
-        extension.getWindowsVsVarsPath().get() =~ "path"
-    }
 }

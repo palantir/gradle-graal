@@ -24,13 +24,15 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Requires
 
+import java.nio.file.Path
+
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
     @Rule MockWebServer server = new MockWebServer()
     String fakeBaseUrl
 
     def setup() {
-        fakeBaseUrl = String.format("http://localhost:%s/oracle/graal/releases/download/", server.getPort())
+        fakeBaseUrl = String.format("http://localhost:%s/graalvm/graalvm-ce-builds/releases/download", server.getPort())
 
         directory("src/main/java/com/palantir/test")
         file("src/main/java/com/palantir/test/Main.java") << '''
@@ -43,50 +45,17 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
             }
         '''
 
-        // on Windows the path contains backslashes, which need to be escaped in .properties files
-        def cacheDirPath = getProjectDir().toPath().resolve("cacheDir").toAbsolutePath().toString().replace("\\", "\\\\")
+        def cacheDirPath = getProjectDir().toPath().resolve("cacheDir").toAbsolutePath().toString()
         file('gradle.properties') << "com.palantir.graal.cache.dir=${cacheDirPath}"
     }
 
-    // there is no RC version for Windows
-    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different RC graal version'() {
+    def 'allows specifying different GA Graal version'() {
         setup:
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
             graal {
-               graalVersion '1.0.0-rc3'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // requestUrl can contain "127.0.0.1" instead of "localhost"
-        server.takeRequest().requestUrl.toString() =~ "http://(localhost|127\\.0\\.0\\.1):${server.port}" +
-                "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
-
-        file("cacheDir/1.0.0-rc3/8/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
-    }
-
-    // for Windows the download is a .zip, this is tested below
-    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different GA graal version (non-windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.0.0'
+               graalVersion '23.0.1'
                downloadBaseUrl '${fakeBaseUrl}'
             }
         """
@@ -106,173 +75,9 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
         // so the comparison is only made for `path`
         server.takeRequest().path =~
-          "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
+          "/graalvm/graalvm-ce-builds/releases/download/jdk-23.0.1/graalvm-community-jdk-23.0.1_(macos|linux)-(aarch64|x64)_bin.tar.gz"
 
-        file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
-    }
-
-    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different GA graal version (windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.0.0'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<zip>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
-        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
-        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
-        // so the comparison is only made for `path`
-        server.takeRequest().path =~
-                "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-windows-amd64-19.0.0.zip"
-
-        file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.zip").text == '<<zip>>'
-    }
-
-    // for Windows the download is a .zip, this is tested below
-    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 8 19.3+ (non-windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.3.0'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
-        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
-        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
-        // so the comparison is only made for `path`
-        server.takeRequest().path =~
-                "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java8-(darwin|linux)-amd64-19.3.0.tar.gz"
-
-        file("cacheDir/19.3.0/8/graalvm-ce-java8-19.3.0-amd64.tar.gz").text == '<<tgz>>'
-    }
-
-    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 8 19.3+ (windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.3.0'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<zip>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
-        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
-        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
-        // so the comparison is only made for `path`
-        server.takeRequest().path =~
-                "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip"
-
-        file("cacheDir/19.3.0/8/graalvm-ce-java8-19.3.0-amd64.zip").text == '<<zip>>'
-    }
-
-    // for Windows the download is a .zip, this is tested below
-    @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 11 19.3+ (non-windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.3.0'
-               javaVersion '11'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<tgz>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
-        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
-        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
-        // so the comparison is only made for `path`
-        server.takeRequest().path =~
-                "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java11-(darwin|linux)-amd64-19.3.0.tar.gz"
-
-        file("cacheDir/19.3.0/11/graalvm-ce-java11-19.3.0-amd64.tar.gz").text == '<<tgz>>'
-    }
-
-    @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 11 19.3+ (windows)'() {
-        setup:
-        buildFile << """
-            apply plugin: 'com.palantir.graal'
-
-            graal {
-               graalVersion '19.3.0'
-               javaVersion '11'
-               downloadBaseUrl '${fakeBaseUrl}'
-            }
-        """
-        server.enqueue(new MockResponse().setBody('<<zip>>'))
-
-        when:
-        ExecutionResult result = runTasksSuccessfully('downloadGraalTooling')
-
-        then:
-        println result.getStandardOutput()
-        result.wasExecuted(':downloadGraalTooling')
-        !result.wasUpToDate(':downloadGraalTooling')
-        !result.wasSkipped(':downloadGraalTooling')
-
-        // `requestUrl` can contain "127.0.0.1" instead of "localhost"
-        // worse yet, it can contain any hostname that is defined for 127.0.0.1 in the hosts file
-        // e.g. Docker Desktop puts "127.0.0.1 kubernetes.docker.internal" in there, which ends up in `requestUrl`
-        // so the comparison is only made for `path`
-        server.takeRequest().path =~
-                "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java11-windows-amd64-19.3.0.zip"
-
-        file("cacheDir/19.3.0/11/graalvm-ce-java11-19.3.0-amd64.zip").text == '<<zip>>'
+        file(String.format("cacheDir/23.0.1/%s", Path.of(server.takeRequest().path).getFileName().toString())).text == '<<tgz>>'
     }
 
     def 'downloadGraalTooling behaves incrementally'() {
