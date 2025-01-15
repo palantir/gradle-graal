@@ -1,0 +1,5 @@
+type: fix
+fix:
+  description: Support GraalVM CE, drop Windows support
+  links:
+  - https://github.com/palantir/gradle-graal/pull/731
