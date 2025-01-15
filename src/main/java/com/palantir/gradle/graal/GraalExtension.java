@@ -28,7 +28,7 @@ import org.gradle.api.provider.ProviderFactory;
  * Contains options and settings for tuning GraalVM use.
  */
 public class GraalExtension {
-    private static final String DOWNLOAD_BASE_URL_GRAAL_19_3 =
+    private static final String DOWNLOAD_BASE_URL_GRAAL =
             "https://github.com/graalvm/graalvm-ce-builds/releases/download";
     private static final String DEFAULT_GRAAL_VERSION = "21.0.2";
 
@@ -60,7 +60,7 @@ public class GraalExtension {
      * Returns the base URL to use for downloading GraalVM binaries.
      */
     public final Provider<String> getDownloadBaseUrl() {
-        return downloadBaseUrl.orElse(DOWNLOAD_BASE_URL_GRAAL_19_3);
+        return downloadBaseUrl.orElse(DOWNLOAD_BASE_URL_GRAAL);
     }
 
     public final void mainClass(String value) {
@@ -115,7 +115,6 @@ public class GraalExtension {
     }
 
     public final Provider<String> getGraalDirectoryName() {
-        return providerFactory.provider(() ->
-             "graalvm-community-jdk-" + graalVersion.get());
+        return providerFactory.provider(() -> "graalvm-community-jdk-" + graalVersion.get());
     }
 }

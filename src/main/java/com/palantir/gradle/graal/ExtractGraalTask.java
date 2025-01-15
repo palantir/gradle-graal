@@ -107,6 +107,7 @@ public class ExtractGraalTask extends DefaultTask {
             case MAC:
                 return Paths.get("Contents", "Home", "bin", binaryName);
             case LINUX:
+                return Paths.get("bin", binaryName);
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
