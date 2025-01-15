@@ -35,11 +35,10 @@ import org.gradle.jvm.tasks.Jar;
  *
  * <p>Downloads are stored in ~/.gradle/caches/com.palantir.graal using the following structure:</p>
  * <pre>
- * ~/.gradle/caches/com.palantir.graal/
+ * q
  * └── [version]/
  *     ├── graalvm-community-jdk-[version]/
  *     │    └── [local architecture-specific GraalVM tooling]
- *     └── graalvm-community-jdk-[version]-amd64.tar.gz
  * </pre>
  */
 public class GradleGraalPlugin implements Plugin<Project> {
