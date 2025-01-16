@@ -2,7 +2,7 @@
 
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
-com.netflix.nebula:nebula-test:10.6.1 (1 constraints: 3a053a3b)
+com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 3b053b3b)
 com.squareup.okhttp3:mockwebserver:4.12.0 (1 constraints: 3905413b)
 com.squareup.okhttp3:okhttp:4.12.0 (1 constraints: 660fa27c)
 com.squareup.okio:okio:3.6.0 (1 constraints: 530c38fd)
