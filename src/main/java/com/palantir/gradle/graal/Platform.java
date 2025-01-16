@@ -33,6 +33,7 @@ public final class Platform {
     }
 
     public static OperatingSystem operatingSystem() {
+        @SuppressWarnings("for-rollout:StringCaseLocaleUsage")
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("mac")) {
             return OperatingSystem.MAC;
