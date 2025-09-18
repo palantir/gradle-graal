@@ -2,11 +2,11 @@
 
 [Test dependencies]
 cglib:cglib-nodep:3.2.2 (1 constraints: 490ded24)
-com.google.errorprone:error_prone_annotations:2.36.0 (1 constraints: 4d0a49bf)
+com.google.errorprone:error_prone_annotations:2.41.0 (1 constraints: 490a3ebf)
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
-com.google.guava:guava:33.4.8-jre (2 constraints: db1ebb7f)
+com.google.guava:guava:33.5.0-jre (2 constraints: d41ec57d)
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
-com.google.j2objc:j2objc-annotations:3.0.0 (1 constraints: 150aeab4)
+com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 3b053b3b)
 com.palantir.gradle.plugintesting:plugin-testing-core:0.6.0 (1 constraints: 0805fd35)
 com.squareup.okhttp3:mockwebserver:5.1.0 (1 constraints: 08050736)
