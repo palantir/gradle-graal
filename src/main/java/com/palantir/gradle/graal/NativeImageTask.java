@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskAction;
 /**
  * Runs GraalVM's native-image command with configured options and parameters.
  */
-public class NativeImageTask extends BaseGraalCompileTask {
+public abstract class NativeImageTask extends BaseGraalCompileTask {
 
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
 
@@ -64,7 +64,7 @@ public class NativeImageTask extends BaseGraalCompileTask {
         List<String> args = new ArrayList<>();
         configureArgs(args);
         args.add(mainClass.get());
-        getProject().exec(spec -> {
+        getExecOperations().exec(spec -> {
             spec.setExecutable(getExecutable());
             spec.setArgs(args);
             configurePlatformSpecifics(spec);

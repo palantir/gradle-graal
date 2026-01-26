@@ -41,9 +41,15 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.process.ExecOperations;
 import org.gradle.process.ExecSpec;
+import javax.inject.Inject;
 
 public abstract class BaseGraalCompileTask extends DefaultTask {
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
     private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();

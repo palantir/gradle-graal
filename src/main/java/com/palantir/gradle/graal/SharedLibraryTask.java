@@ -26,7 +26,7 @@ import org.gradle.api.tasks.TaskAction;
 /**
  * Runs GraalVM's native-image command configured to produce a shared library.
  */
-public class SharedLibraryTask extends BaseGraalCompileTask {
+public abstract class SharedLibraryTask extends BaseGraalCompileTask {
 
     public SharedLibraryTask() {
         setDescription("Runs GraalVM's native-image command configured to produce a shared library.");
@@ -59,7 +59,7 @@ public class SharedLibraryTask extends BaseGraalCompileTask {
         List<String> args = new ArrayList<>();
         args.add("--shared");
         configureArgs(args);
-        getProject().exec(spec -> {
+        getExecOperations().exec(spec -> {
             spec.setExecutable(getExecutable());
             spec.setArgs(args);
             configurePlatformSpecifics(spec);
