@@ -63,6 +63,7 @@ version gitVersion()
 
 repositories {
     mavenCentral() { metadataSources { mavenPom(); ignoreGradleMetadataRedirection() } }
+    mavenLocal()
 }
 
 dependencies {
