@@ -33,8 +33,8 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
             List<String> args = new ArrayList<>();
             args.add("--shared");
             configureArgs(args);
-            configurePlatformSpecifics(getExecutable(), args);
-            return args;
+            return configurePlatformSpecifics(new CommandSpec(getExecutable(), args))
+                    .toCommand();
         }));
 
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking

@@ -38,8 +38,8 @@ public abstract class NativeImageTask extends BaseGraalCompileTask {
             List<String> args = new ArrayList<>();
             configureArgs(args);
             args.add(mainClass.get());
-            configurePlatformSpecifics(getExecutable(), args);
-            return args;
+            return configurePlatformSpecifics(new CommandSpec(getExecutable(), args))
+                    .toCommand();
         }));
 
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking

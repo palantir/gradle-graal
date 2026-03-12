@@ -142,10 +142,9 @@ public abstract class BaseGraalCompileTask extends BetterExec {
         }
     }
 
-    protected final void configurePlatformSpecifics(String executable, List<String> command) {
+    protected final CommandSpec configurePlatformSpecifics(CommandSpec spec) {
         if (Platform.operatingSystem() != Platform.OperatingSystem.WINDOWS) {
-            command.add(0, executable);
-            return;
+            return spec;
         }
 
         // on Windows the native-image executable needs to be launched from the Windows SDK Command Prompt
@@ -163,10 +162,11 @@ public abstract class BaseGraalCompileTask extends BetterExec {
             throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
         }
 
-        String argsString = command.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
+        String argsString =
+                spec.args().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
         String vsCommand = "call \"" + windowsVsVarsPath.get() + "\"";
         String cmdContent =
-                "@echo off\r\n" + vsCommand + outputRedirection + "\r\n" + "\"" + executable + "\"" + argsString;
+                "@echo off\r\n" + vsCommand + outputRedirection + "\r\n" + "\"" + spec.executable() + "\"" + argsString;
         Path buildPath = getProject().getBuildDir().toPath();
         Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
         try {
@@ -178,14 +178,15 @@ public abstract class BaseGraalCompileTask extends BetterExec {
             throw new RuntimeException(e);
         }
 
-        command.clear();
-        command.add("cmd.exe");
-        // command extensions
-        command.add("/E:ON");
-        // delayed environment variable expansion via !
-        command.add("/V:ON");
-        command.add("/c");
-        command.add("\"" + startCmd + "\"");
+        return new CommandSpec(
+                "cmd.exe",
+                List.of(
+                        // command extensions
+                        "/E:ON",
+                        // delayed environment variable expansion via !
+                        "/V:ON",
+                        "/c",
+                        "\"" + startCmd + "\""));
     }
 
     protected static long fileSizeMegabytes(RegularFile regularFile) {
