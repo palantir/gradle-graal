@@ -16,19 +16,17 @@
 
 package com.palantir.gradle.graal;
 
+import com.palantir.gradle.betterexec.BetterExec;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.RegularFile;
@@ -42,13 +40,8 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.ExecSpec;
 
-public abstract class BaseGraalCompileTask extends DefaultTask {
-
-    @Inject
-    protected abstract ExecOperations getExecOperations();
+public abstract class BaseGraalCompileTask extends BetterExec {
 
     private final Property<String> outputName = getProject().getObjects().property(String.class);
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
@@ -74,10 +67,14 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     @Input
     protected abstract String getArchitectureSpecifiedOutputExtension();
 
-    protected final File maybeCreateOutputDirectory() throws IOException {
-        File directory = getOutputFile().get().getAsFile().getParentFile();
-        Files.createDirectories(directory.toPath());
-        return directory;
+    protected final File maybeCreateOutputDirectory() {
+        try {
+            File directory = getOutputFile().get().getAsFile().getParentFile();
+            Files.createDirectories(directory.toPath());
+            return directory;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     @Input
@@ -92,9 +89,8 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
     /**
      * Adds all graal vm command line args into the specified args list.
      * @param args The list where all the command line args are going to be loaded
-     * @throws IOException If any problem while creating output directory
      */
-    protected final void configureArgs(List<String> args) throws IOException {
+    protected final void configureArgs(List<String> args) {
         args.add("-cp");
         args.add(generateClasspathArgument());
         args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
@@ -146,52 +142,50 @@ public abstract class BaseGraalCompileTask extends DefaultTask {
         }
     }
 
-    protected final void configurePlatformSpecifics(ExecSpec spec) {
-        if (Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS) {
-            // on Windows the native-image executable needs to be launched from the Windows SDK Command Prompt
-            // this is mentioned at https://github.com/oracle/graal/tree/master/substratevm#quick-start
-            // here we create and launch a temporary .cmd file that first calls SetEnv.cmd and then runs Graal
-
-            String outputRedirection = "";
-            if (!getLogger().isEnabled(LogLevel.INFO)) {
-                // hide the output of SetEnv.cmd (an error that can safely be ignored and info messages)
-                // if Gradle isn't run with e.g. --info
-                outputRedirection = " >nul 2>&1";
-            }
-
-            if (windowsVsVarsPath.get().isEmpty()) {
-                throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
-            }
-
-            String argsString =
-                    spec.getArgs().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
-            String command = "call \"" + windowsVsVarsPath.get() + "\"";
-            String cmdContent = "@echo off\r\n"
-                    + command
-                    + outputRedirection + "\r\n"
-                    + "\"" + spec.getExecutable() + "\"" + argsString;
-            Path buildPath = getProject().getBuildDir().toPath();
-            Path startCmd =
-                    buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
-            try {
-                if (!Files.exists(startCmd.getParent())) {
-                    Files.createDirectories(startCmd.getParent());
-                }
-                Files.write(startCmd, cmdContent.getBytes(StandardCharsets.UTF_8));
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            List<String> cmdArgs = new ArrayList<>();
-            // command extensions
-            cmdArgs.add("/E:ON");
-            // delayed environment variable expansion via !
-            cmdArgs.add("/V:ON");
-            cmdArgs.add("/c");
-            cmdArgs.add("\"" + startCmd.toString() + "\"");
-            spec.setExecutable("cmd.exe");
-            spec.setArgs(cmdArgs);
+    protected final void configurePlatformSpecifics(String executable, List<String> command) {
+        if (Platform.operatingSystem() != Platform.OperatingSystem.WINDOWS) {
+            command.add(0, executable);
+            return;
         }
+
+        // on Windows the native-image executable needs to be launched from the Windows SDK Command Prompt
+        // this is mentioned at https://github.com/oracle/graal/tree/master/substratevm#quick-start
+        // here we create and launch a temporary .cmd file that first calls SetEnv.cmd and then runs Graal
+
+        String outputRedirection = "";
+        if (!getLogger().isEnabled(LogLevel.INFO)) {
+            // hide the output of SetEnv.cmd (an error that can safely be ignored and info messages)
+            // if Gradle isn't run with e.g. --info
+            outputRedirection = " >nul 2>&1";
+        }
+
+        if (windowsVsVarsPath.get().isEmpty()) {
+            throw new GradleException("Couldn't find an installation of Windows SDK 7.1 suitable for GraalVM.");
+        }
+
+        String argsString = command.stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
+        String vsCommand = "call \"" + windowsVsVarsPath.get() + "\"";
+        String cmdContent =
+                "@echo off\r\n" + vsCommand + outputRedirection + "\r\n" + "\"" + executable + "\"" + argsString;
+        Path buildPath = getProject().getBuildDir().toPath();
+        Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
+        try {
+            if (!Files.exists(startCmd.getParent())) {
+                Files.createDirectories(startCmd.getParent());
+            }
+            Files.writeString(startCmd, cmdContent);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        command.clear();
+        command.add("cmd.exe");
+        // command extensions
+        command.add("/E:ON");
+        // delayed environment variable expansion via !
+        command.add("/V:ON");
+        command.add("/c");
+        command.add("\"" + startCmd + "\"");
     }
 
     protected static long fileSizeMegabytes(RegularFile regularFile) {

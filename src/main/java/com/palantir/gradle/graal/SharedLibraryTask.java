@@ -16,12 +16,10 @@
 
 package com.palantir.gradle.graal;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskAction;
 
 /**
  * Runs GraalVM's native-image command configured to produce a shared library.
@@ -30,6 +28,15 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
 
     public SharedLibraryTask() {
         setDescription("Runs GraalVM's native-image command configured to produce a shared library.");
+
+        getCommand().addAll(getProject().provider(() -> {
+            List<String> args = new ArrayList<>();
+            args.add("--shared");
+            configureArgs(args);
+            configurePlatformSpecifics(getExecutable(), args);
+            return args;
+        }));
+
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
         doLast(new LogAction());
     }
@@ -52,18 +59,6 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
-    }
-
-    @TaskAction
-    public final void sharedLibrary() throws IOException {
-        List<String> args = new ArrayList<>();
-        args.add("--shared");
-        configureArgs(args);
-        getExecOperations().exec(spec -> {
-            spec.setExecutable(getExecutable());
-            spec.setArgs(args);
-            configurePlatformSpecifics(spec);
-        });
     }
 
     private final class LogAction implements Action<Task> {
