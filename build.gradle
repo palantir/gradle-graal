@@ -34,7 +34,6 @@ buildscript {
         classpath 'com.palantir.gradle.gitversion:gradle-git-version:5.0.0'
         classpath 'com.palantir.javaformat:gradle-palantir-java-format:2.42.0'
         classpath 'com.palantir.suppressible-error-prone:gradle-suppressible-error-prone:2.2.0'
-        classpath 'gradle.plugin.org.inferred:gradle-processors:3.7.0'
     }
 }
 allprojects {
@@ -56,7 +55,6 @@ apply plugin: 'com.palantir.gradle-plugin-testing'
 apply plugin: 'com.palantir.java-format'
 apply plugin: 'com.palantir.jdks'
 apply plugin: 'com.palantir.jdks.latest'
-apply plugin: 'org.inferred.processors'
 
 group 'com.palantir.graal'
 version gitVersion()
