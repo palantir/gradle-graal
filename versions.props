@@ -1,5 +1,5 @@
 com.fasterxml.jackson.core:jackson-databind = 2.13.2.1
-org.junit.platform:junit-platform-launcher = 1.9.0
+org.junit.platform:junit-platform-launcher = 6.0.3
 com.google.guava:guava = 33.5.0-jre
 com.netflix.nebula:nebula-test = 10.6.2
 com.squareup.okhttp3:* = 5.3.2
