@@ -19,7 +19,7 @@ package com.palantir.gradle.graal;
 import java.util.List;
 
 final class GradleTestVersions {
-    static final List<String> GRADLE_VERSIONS = List.of("8.14.3", "9.4.0");
+    static final List<String> GRADLE_VERSIONS = List.of("8.14.4", "9.4.0");
 
     private GradleTestVersions() {}
 }
