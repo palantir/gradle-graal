@@ -18,12 +18,22 @@ package com.palantir.gradle.graal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 record CommandSpec(String executable, List<String> args) {
+    CommandSpec(String executable) {
+        this(executable, new ArrayList<>());
+    }
+
+    void addArg(String arg) {
+        args.add(arg);
+    }
+
+    void addArgs(List<String> newArgs) {
+        args.addAll(newArgs);
+    }
+
     List<String> toCommand() {
-        List<String> command = new ArrayList<>();
-        command.add(executable);
-        command.addAll(args);
-        return command;
+        return Stream.concat(Stream.of(executable), args.stream()).toList();
     }
 }

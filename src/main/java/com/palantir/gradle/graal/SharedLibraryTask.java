@@ -16,8 +16,6 @@
 
 package com.palantir.gradle.graal;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 
@@ -30,11 +28,10 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
         setDescription("Runs GraalVM's native-image command configured to produce a shared library.");
 
         getCommand().addAll(getProject().provider(() -> {
-            List<String> args = new ArrayList<>();
-            args.add("--shared");
-            configureArgs(args);
-            return configurePlatformSpecifics(new CommandSpec(getExecutable(), args))
-                    .toCommand();
+            CommandSpec spec = new CommandSpec(getExecutable());
+            spec.addArg("--shared");
+            configureArgs(spec);
+            return configurePlatformSpecifics(spec).toCommand();
         }));
 
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking

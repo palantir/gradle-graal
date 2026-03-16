@@ -87,22 +87,20 @@ public abstract class BaseGraalCompileTask extends BetterExec {
     }
 
     /**
-     * Adds all graal vm command line args into the specified args list.
-     * @param args The list where all the command line args are going to be loaded
+     * Adds all graal vm command line args into the specified command spec.
      */
-    protected final void configureArgs(List<String> args) {
-        args.add("-cp");
-        args.add(generateClasspathArgument());
-        args.add("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
+    protected final void configureArgs(CommandSpec spec) {
+        spec.addArg("-cp");
+        spec.addArg(generateClasspathArgument());
+        spec.addArg("-H:Path=" + maybeCreateOutputDirectory().getAbsolutePath());
         if (options.isPresent()) {
-            List<String> optionList = options.get();
-            args.addAll(optionList);
+            spec.addArgs(options.get());
         }
         // Set H:Name after all other options in order to override other H:Name
         // options that were expanded from macro options above. See
         // https://github.com/oracle/graal/issues/1032
         if (outputName.isPresent()) {
-            args.add("-H:Name=" + outputName.get());
+            spec.addArg("-H:Name=" + outputName.get());
         }
     }
 
@@ -164,11 +162,14 @@ public abstract class BaseGraalCompileTask extends BetterExec {
 
         String argsString =
                 spec.args().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
-        String vsCommand = "call \"" + windowsVsVarsPath.get() + "\"";
-        String cmdContent =
-                "@echo off\r\n" + vsCommand + outputRedirection + "\r\n" + "\"" + spec.executable() + "\"" + argsString;
+        String command = "call \"" + windowsVsVarsPath.get() + "\"";
+        String cmdContent = "@echo off\r\n"
+                + command
+                + outputRedirection + "\r\n"
+                + "\"" + spec.executable() + "\"" + argsString;
         Path buildPath = getProject().getBuildDir().toPath();
-        Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
+        Path startCmd =
+                buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
         try {
             if (!Files.exists(startCmd.getParent())) {
                 Files.createDirectories(startCmd.getParent());
