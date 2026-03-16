@@ -163,13 +163,10 @@ public abstract class BaseGraalCompileTask extends BetterExec {
         String argsString =
                 spec.args().stream().map(s -> "\"" + s + "\"").collect(Collectors.joining(" ", " ", "\r\n"));
         String command = "call \"" + windowsVsVarsPath.get() + "\"";
-        String cmdContent = "@echo off\r\n"
-                + command
-                + outputRedirection + "\r\n"
-                + "\"" + spec.executable() + "\"" + argsString;
+        String cmdContent =
+                "@echo off\r\n" + command + outputRedirection + "\r\n" + "\"" + spec.executable() + "\"" + argsString;
         Path buildPath = getProject().getBuildDir().toPath();
-        Path startCmd =
-                buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
+        Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
         try {
             if (!Files.exists(startCmd.getParent())) {
                 Files.createDirectories(startCmd.getParent());
