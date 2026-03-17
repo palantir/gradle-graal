@@ -69,6 +69,7 @@ repositories {
 dependencies {
     implementation localGroovy()
     implementation gradleApi()
+    implementation 'com.palantir.gradle.better-exec:better-exec'
 
     testImplementation gradleTestKit()
     testImplementation 'com.netflix.nebula:nebula-test'

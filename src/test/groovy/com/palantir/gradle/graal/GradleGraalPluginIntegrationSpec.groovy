@@ -16,6 +16,8 @@
 
 package com.palantir.gradle.graal
 
+import static com.palantir.gradle.graal.GradleTestVersions.GRADLE_VERSIONS
+
 import nebula.test.IntegrationSpec
 import nebula.test.functional.ExecutionResult
 import okhttp3.mockwebserver.MockResponse
@@ -23,7 +25,9 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Requires
+import spock.lang.Unroll
 
+@Unroll
 class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
     @Rule MockWebServer server = new MockWebServer()
@@ -50,8 +54,9 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
 
     // there is no RC version for Windows
     @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different RC graal version'() {
+    def '#gradleVersionNumber: allows specifying different RC graal version'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -76,12 +81,16 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "/oracle/graal/releases/download//vm-1.0.0-rc3/graalvm-ce-1.0.0-rc3-(macos|linux)-amd64.tar.gz"
 
         file("cacheDir/1.0.0-rc3/8/graalvm-ce-1.0.0-rc3-amd64.tar.gz").text == '<<tgz>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     // for Windows the download is a .zip, this is tested below
     @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different GA graal version (non-windows)'() {
+    def '#gradleVersionNumber: allows specifying different GA graal version (non-windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -109,11 +118,15 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
           "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-(darwin|linux)-amd64-19.0.0.tar.gz"
 
         file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.tar.gz").text == '<<tgz>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying different GA graal version (windows)'() {
+    def '#gradleVersionNumber: allows specifying different GA graal version (windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -141,12 +154,16 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "/oracle/graal/releases/download//vm-19.0.0/graalvm-ce-windows-amd64-19.0.0.zip"
 
         file("cacheDir/19.0.0/8/graalvm-ce-19.0.0-amd64.zip").text == '<<zip>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     // for Windows the download is a .zip, this is tested below
     @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 8 19.3+ (non-windows)'() {
+    def '#gradleVersionNumber: allows specifying GA graal version Java 8 19.3+ (non-windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -174,11 +191,15 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java8-(darwin|linux)-amd64-19.3.0.tar.gz"
 
         file("cacheDir/19.3.0/8/graalvm-ce-java8-19.3.0-amd64.tar.gz").text == '<<tgz>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 8 19.3+ (windows)'() {
+    def '#gradleVersionNumber: allows specifying GA graal version Java 8 19.3+ (windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -206,12 +227,16 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java8-windows-amd64-19.3.0.zip"
 
         file("cacheDir/19.3.0/8/graalvm-ce-java8-19.3.0-amd64.zip").text == '<<zip>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     // for Windows the download is a .zip, this is tested below
     @IgnoreIf({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 11 19.3+ (non-windows)'() {
+    def '#gradleVersionNumber: allows specifying GA graal version Java 11 19.3+ (non-windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -240,11 +265,15 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java11-(darwin|linux)-amd64-19.3.0.tar.gz"
 
         file("cacheDir/19.3.0/11/graalvm-ce-java11-19.3.0-amd64.tar.gz").text == '<<tgz>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
     @Requires({ Platform.operatingSystem() == Platform.OperatingSystem.WINDOWS })
-    def 'allows specifying GA graal version Java 11 19.3+ (windows)'() {
+    def '#gradleVersionNumber: allows specifying GA graal version Java 11 19.3+ (windows)'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -273,10 +302,14 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
                 "oracle/graal/releases/download//vm-19.3.0/graalvm-ce-java11-windows-amd64-19.3.0.zip"
 
         file("cacheDir/19.3.0/11/graalvm-ce-java11-19.3.0-amd64.zip").text == '<<zip>>'
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 
-    def 'downloadGraalTooling behaves incrementally'() {
+    def '#gradleVersionNumber: downloadGraalTooling behaves incrementally'() {
         setup:
+        gradleVersion = gradleVersionNumber
         buildFile << """
             apply plugin: 'com.palantir.graal'
 
@@ -293,5 +326,8 @@ class GradleGraalPluginIntegrationSpec extends IntegrationSpec {
         then:
         result1.wasSkipped(':downloadGraalTooling') == false
         result2.wasSkipped(':downloadGraalTooling') == true
+
+        where:
+        gradleVersionNumber << GRADLE_VERSIONS
     }
 }

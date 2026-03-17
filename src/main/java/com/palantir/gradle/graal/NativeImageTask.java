@@ -16,25 +16,28 @@
 
 package com.palantir.gradle.graal;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.TaskAction;
 
 /**
  * Runs GraalVM's native-image command with configured options and parameters.
  */
-public class NativeImageTask extends BaseGraalCompileTask {
+public abstract class NativeImageTask extends BaseGraalCompileTask {
 
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
 
     public NativeImageTask() {
         setDescription("Runs GraalVM's native-image command with configured options and parameters.");
+
+        getCommand().addAll(getProject().provider(() -> {
+            CommandSpec spec = new CommandSpec(getExecutable());
+            configureArgs(spec);
+            spec.addArg(mainClass.get());
+            return configurePlatformSpecifics(spec).toCommand();
+        }));
 
         // must use an anonymous inner class instead of a lambda to get Gradle staleness checking
         doLast(new LogAction());
@@ -57,18 +60,6 @@ public class NativeImageTask extends BaseGraalCompileTask {
             default:
                 throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
         }
-    }
-
-    @TaskAction
-    public final void nativeImage() throws IOException {
-        List<String> args = new ArrayList<>();
-        configureArgs(args);
-        args.add(mainClass.get());
-        getProject().exec(spec -> {
-            spec.setExecutable(getExecutable());
-            spec.setArgs(args);
-            configurePlatformSpecifics(spec);
-        });
     }
 
     @Input
