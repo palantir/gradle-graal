@@ -1,4 +1,5 @@
-com.fasterxml.jackson.core:jackson-databind = 2.13.2.1
+com.fasterxml.jackson.*:* = 2.21.1
+com.fasterxml.jackson.core:jackson-annotations = 2.21
 com.palantir.gradle.better-exec:* = 3.6.0
 org.junit.platform:junit-platform-launcher = 6.0.3
 com.google.guava:guava = 33.5.0-jre
