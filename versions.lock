@@ -10,11 +10,11 @@ com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.1 (1 constraints: 3
 
 com.fasterxml.woodstox:woodstox-core:7.1.1 (1 constraints: 3d174926)
 
-com.google.errorprone:error_prone_annotations:2.41.0 (2 constraints: 941ce9f9)
+com.google.errorprone:error_prone_annotations:2.47.0 (2 constraints: 9a1c39fb)
 
 com.google.guava:failureaccess:1.0.3 (1 constraints: 160ae3b4)
 
-com.google.guava:guava:33.5.0-jre (3 constraints: 793b45c3)
+com.google.guava:guava:33.6.0-jre (3 constraints: 7a3bdec3)
 
 com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 constraints: bd17c918)
 
