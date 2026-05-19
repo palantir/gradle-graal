@@ -72,11 +72,11 @@ org.jetbrains:annotations:13.0 (1 constraints: df0e795c)
 
 org.jetbrains.kotlin:kotlin-stdlib:2.2.21 (4 constraints: ee388d47)
 
-org.junit.platform:junit-platform-commons:6.0.3 (1 constraints: 6d11a1d9)
+org.junit.platform:junit-platform-commons:6.1.0 (1 constraints: 6b11a1d9)
 
-org.junit.platform:junit-platform-engine:6.0.3 (2 constraints: 7e1f53d8)
+org.junit.platform:junit-platform-engine:6.1.0 (2 constraints: 7c1f07d8)
 
-org.junit.platform:junit-platform-launcher:6.0.3 (1 constraints: 0b050c36)
+org.junit.platform:junit-platform-launcher:6.1.0 (1 constraints: 09050c36)
 
 org.objenesis:objenesis:2.4 (1 constraints: ea0c8c0a)
 
