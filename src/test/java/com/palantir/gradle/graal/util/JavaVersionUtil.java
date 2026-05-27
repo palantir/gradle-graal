@@ -16,7 +16,7 @@
 
 package com.palantir.gradle.graal.util;
 
-public class JavaVersionUtil {
+public final class JavaVersionUtil {
     public static int runtimeMajorVersion() {
         String version = System.getProperty("java.version");
         if (version.startsWith("1.")) {
