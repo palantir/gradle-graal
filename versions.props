@@ -4,4 +4,4 @@ com.palantir.gradle.better-exec:* = 3.7.0
 org.junit.platform:junit-platform-launcher = 6.1.0
 com.google.guava:guava = 33.6.0-jre
 com.netflix.nebula:nebula-test = 10.6.2
-com.squareup.okhttp3:* = 5.3.2
+com.squareup.okhttp3:* = 5.4.0
