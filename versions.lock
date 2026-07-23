@@ -20,7 +20,7 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.gradle.better-exec:better-exec:3.8.0 (1 constraints: 0d051236)
+com.palantir.gradle.better-exec:better-exec:3.9.0 (1 constraints: 0e051536)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-common:1.18.0 (1 constraints: f21c3bc2)
 
