@@ -1,14 +1,14 @@
 # Run ./gradlew writeVersionsLocks to regenerate this file. Blank lines are to minimize merge conflicts.
 
-com.fasterxml.jackson.core:jackson-annotations:2.21 (4 constraints: da3c34c2)
+com.fasterxml.jackson.core:jackson-annotations:2.22 (4 constraints: dd3c66c3)
 
-com.fasterxml.jackson.core:jackson-core:2.21.4 (2 constraints: f529ad13)
+com.fasterxml.jackson.core:jackson-core:2.22.1 (2 constraints: f1292b13)
 
-com.fasterxml.jackson.core:jackson-databind:2.21.4 (1 constraints: 6d17a33d)
+com.fasterxml.jackson.core:jackson-databind:2.22.1 (1 constraints: 6b17a33d)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.21.4 (1 constraints: 331b1247)
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.1 (1 constraints: 331b1247)
 
-com.fasterxml.woodstox:woodstox-core:7.1.1 (1 constraints: 3d174926)
+com.fasterxml.woodstox:woodstox-core:7.2.0 (1 constraints: 3d174b26)
 
 com.google.errorprone:error_prone_annotations:2.47.0 (2 constraints: 9a1c39fb)
 
@@ -38,7 +38,7 @@ com.palantir.gradle.utils:providers:0.24.0 (2 constraints: 6820125d)
 
 com.palantir.gradle.utils:safe-exec-commandline:0.24.0 (1 constraints: 710de031)
 
-org.codehaus.woodstox:stax2-api:4.2.2 (2 constraints: 6a278bd2)
+org.codehaus.woodstox:stax2-api:4.3.0 (2 constraints: 682760d2)
 
 org.jspecify:jspecify:1.0.0 (4 constraints: a13f56dd)
 
