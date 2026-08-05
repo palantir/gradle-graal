@@ -20,23 +20,23 @@ com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava (1 c
 
 com.google.j2objc:j2objc-annotations:3.1 (1 constraints: b809f1a0)
 
-com.palantir.gradle.better-exec:better-exec:3.9.0 (1 constraints: 0e051536)
+com.palantir.gradle.better-exec:better-exec:3.10.0 (1 constraints: 3605353b)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-common:1.18.0 (1 constraints: f21c3bc2)
 
 com.palantir.gradle.failure-reports:gradle-failure-reports-exceptions:1.18.0 (1 constraints: 4f12a819)
 
-com.palantir.gradle.utils:circleci-artifacts:0.24.0 (1 constraints: 4b129a19)
+com.palantir.gradle.utils:circleci-artifacts:0.26.0 (1 constraints: 4d12a019)
 
-com.palantir.gradle.utils:environment-variables:0.24.0 (2 constraints: 4225df29)
+com.palantir.gradle.utils:environment-variables:0.26.0 (2 constraints: 4625572a)
 
-com.palantir.gradle.utils:exec:0.24.0 (1 constraints: 310f6776)
+com.palantir.gradle.utils:exec:0.26.0 (1 constraints: 330f6d76)
 
-com.palantir.gradle.utils:platform:0.24.0 (1 constraints: 4b129a19)
+com.palantir.gradle.utils:platform:0.26.0 (1 constraints: 4d12a019)
 
-com.palantir.gradle.utils:providers:0.24.0 (2 constraints: 6820125d)
+com.palantir.gradle.utils:providers:0.26.0 (2 constraints: 6c206e5d)
 
-com.palantir.gradle.utils:safe-exec-commandline:0.24.0 (1 constraints: 710de031)
+com.palantir.gradle.utils:safe-exec-commandline:0.26.0 (1 constraints: 730de631)
 
 org.codehaus.woodstox:stax2-api:4.3.0 (2 constraints: 682760d2)
 
