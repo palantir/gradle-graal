@@ -52,13 +52,13 @@ com.netflix.nebula:nebula-test:10.6.2 (1 constraints: 3b053b3b)
 
 com.palantir.gradle.plugintesting:plugin-testing-core:0.6.0 (1 constraints: 0805fd35)
 
-com.squareup.okhttp3:mockwebserver:5.4.0 (1 constraints: 0b051036)
+com.squareup.okhttp3:mockwebserver:5.5.0 (1 constraints: 0c051336)
 
-com.squareup.okhttp3:mockwebserver3:5.4.0 (1 constraints: 380f446d)
+com.squareup.okhttp3:mockwebserver3:5.5.0 (1 constraints: 390f476d)
 
-com.squareup.okhttp3:okhttp-jvm:5.4.0 (2 constraints: a21ebf87)
+com.squareup.okhttp3:okhttp-jvm:5.5.0 (2 constraints: a41ef187)
 
-com.squareup.okio:okio-jvm:3.17.0 (2 constraints: 681d513b)
+com.squareup.okio:okio-jvm:3.18.1 (2 constraints: 6c1dab3b)
 
 junit:junit:4.13.2 (2 constraints: 831d9940)
 
