@@ -2,6 +2,6 @@ com.fasterxml.jackson.*:* = 2.22.1
 com.fasterxml.jackson.core:jackson-annotations = 2.22
 com.palantir.gradle.better-exec:* = 3.10.0
 org.junit.platform:junit-platform-launcher = 6.1.3
-com.google.guava:guava = 33.7.0-jre
+com.google.guava:guava = 33.7.1-jre
 com.netflix.nebula:nebula-test = 10.6.2
 com.squareup.okhttp3:* = 5.5.0
