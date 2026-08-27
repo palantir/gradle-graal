@@ -46,16 +46,12 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
      */
     @Override
     protected String getArchitectureSpecifiedOutputExtension() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-                return ".dylib";
-            case LINUX:
-                return ".so";
-            case WINDOWS:
-                return ".dll";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC -> ".dylib";
+            case LINUX -> ".so";
+            case WINDOWS -> ".dll";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     private final class LogAction implements Action<Task> {
