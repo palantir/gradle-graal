@@ -67,9 +67,12 @@ public class DownloadGraalTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getArchive() {
-        return getProject().getLayout().file(getCacheSubdirectory().map(dir -> dir.resolve(javaVersion.get())
-                .resolve(render(FILENAME_PATTERN))
-                .toFile()));
+        return getProject()
+                .getLayout()
+                .file(getCacheSubdirectory()
+                        .map(dir -> dir.resolve(javaVersion.get())
+                                .resolve(render(FILENAME_PATTERN))
+                                .toFile()));
     }
 
     @Input
