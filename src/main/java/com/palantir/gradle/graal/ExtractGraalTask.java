@@ -68,7 +68,6 @@ public abstract class ExtractGraalTask extends DefaultTask {
                 .dir(graalDirectoryName.get())));
     }
 
-    @SuppressWarnings("for-rollout:deprecation")
     @TaskAction
     public final void extractGraal() {
         if (!graalVersion.isPresent()) {
