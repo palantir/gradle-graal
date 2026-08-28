@@ -117,37 +117,27 @@ public class DownloadGraalTask extends DefaultTask {
     }
 
     private String getOperatingSystem() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-                return isGraalRcVersion() ? "macos" : "darwin";
-            case LINUX:
-                return "linux";
-            case WINDOWS:
-                return "windows";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC -> isGraalRcVersion() ? "macos" : "darwin";
+            case LINUX -> "linux";
+            case WINDOWS -> "windows";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     private String getArchitecture() {
-        switch (Platform.architecture()) {
-            case AMD64:
-                return "amd64";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
-        }
+        return switch (Platform.architecture()) {
+            case AMD64 -> "amd64";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.architecture());
+        };
     }
 
     private String getArchiveExtension() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-            case LINUX:
-                return "tar.gz";
-            case WINDOWS:
-                return "zip";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC, LINUX -> "tar.gz";
+            case WINDOWS -> "zip";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     private boolean isGraalRcVersion() {

@@ -51,15 +51,11 @@ public abstract class NativeImageTask extends BaseGraalCompileTask {
      */
     @Override
     protected String getArchitectureSpecifiedOutputExtension() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-            case LINUX:
-                return "";
-            case WINDOWS:
-                return ".exe";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC, LINUX -> "";
+            case WINDOWS -> ".exe";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     @Input

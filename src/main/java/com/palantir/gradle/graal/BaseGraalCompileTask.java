@@ -116,28 +116,20 @@ public abstract class BaseGraalCompileTask extends BetterExec {
     }
 
     private Path getArchitectureSpecifiedBinaryPath() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-                return Paths.get("Contents", "Home", "bin", "native-image");
-            case LINUX:
-                return Paths.get("bin", "native-image");
-            case WINDOWS:
-                return Paths.get("bin", "native-image.cmd");
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC -> Paths.get("Contents", "Home", "bin", "native-image");
+            case LINUX -> Paths.get("bin", "native-image");
+            case WINDOWS -> Paths.get("bin", "native-image.cmd");
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     private String getArchitectureSpecifiedPathSeparator() {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-            case LINUX:
-                return ":";
-            case WINDOWS:
-                return ";";
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC, LINUX -> ":";
+            case WINDOWS -> ";";
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
 
     protected final CommandSpec configurePlatformSpecifics(CommandSpec spec) {
@@ -165,6 +157,7 @@ public abstract class BaseGraalCompileTask extends BetterExec {
         String command = "call \"" + windowsVsVarsPath.get() + "\"";
         String cmdContent =
                 "@echo off\r\n" + command + outputRedirection + "\r\n" + "\"" + spec.executable() + "\"" + argsString;
+        @SuppressWarnings("for-rollout:deprecation")
         Path buildPath = getProject().getBuildDir().toPath();
         Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
         try {
@@ -173,7 +166,7 @@ public abstract class BaseGraalCompileTask extends BetterExec {
             }
             Files.writeString(startCmd, cmdContent);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
 
         return new CommandSpec(
@@ -191,7 +184,7 @@ public abstract class BaseGraalCompileTask extends BetterExec {
         try {
             return Files.size(regularFile.getAsFile().toPath()) / (1000 * 1000);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

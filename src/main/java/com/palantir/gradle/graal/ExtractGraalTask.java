@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
@@ -34,9 +35,10 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
 
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
-public class ExtractGraalTask extends DefaultTask {
+public abstract class ExtractGraalTask extends DefaultTask {
     /**
      * These binaries get .cmd as their filename extension, instead of .cmd (on Windows).
      */
@@ -66,6 +68,7 @@ public class ExtractGraalTask extends DefaultTask {
                 .dir(graalDirectoryName.get())));
     }
 
+    @SuppressWarnings("for-rollout:deprecation")
     @TaskAction
     public final void extractGraal() {
         if (!graalVersion.isPresent()) {
@@ -83,7 +86,7 @@ public class ExtractGraalTask extends DefaultTask {
             });
         } else {
             // ideally this would be a CopyTask, but through Gradle 4.9 CopyTask fails to correctly extract symlinks
-            project.exec(spec -> {
+            getExecOperations().exec(spec -> {
                 spec.executable("tar");
                 spec.args("-xzf", inputArchiveFile.getAbsolutePath());
                 spec.workingDir(versionedCacheDir);
@@ -92,7 +95,7 @@ public class ExtractGraalTask extends DefaultTask {
 
         File nativeImageExecutable = getExecutable("native-image");
         if (!nativeImageExecutable.isFile()) {
-            project.exec(spec -> {
+            getExecOperations().exec(spec -> {
                 File graalUpdateExecutable = getExecutable("gu");
                 if (!graalUpdateExecutable.isFile()) {
                     throw new IllegalStateException("Failed to find Graal update binary: " + graalUpdateExecutable);
@@ -123,16 +126,15 @@ public class ExtractGraalTask extends DefaultTask {
     }
 
     private Path getArchitectureSpecifiedBinaryPath(String binaryName) {
-        switch (Platform.operatingSystem()) {
-            case MAC:
-                return Paths.get("Contents", "Home", "bin", binaryName);
-            case LINUX:
-            case WINDOWS:
-                return Paths.get("bin", binaryName);
-            default:
-                throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
-        }
+        return switch (Platform.operatingSystem()) {
+            case MAC -> Paths.get("Contents", "Home", "bin", binaryName);
+            case LINUX, WINDOWS -> Paths.get("bin", binaryName);
+            default -> throw new IllegalStateException("No GraalVM support for " + Platform.operatingSystem());
+        };
     }
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
 
     @InputFile
     public final Provider<RegularFile> getInputArchive() {
