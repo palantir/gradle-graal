@@ -109,7 +109,7 @@ tasks.withType(JavaCompile) {
 }
 
 javaVersions {
-    javaCompiler = 21
+    javaCompiler = 25
     libraryTarget = 17
 }
 
