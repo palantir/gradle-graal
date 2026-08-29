@@ -22,7 +22,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import javax.inject.Inject;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -31,7 +33,10 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 
 /** Downloads GraalVM binaries. */
-public class DownloadGraalTask extends DefaultTask {
+public abstract class DownloadGraalTask extends DefaultTask {
+
+    @Inject
+    protected abstract ProjectLayout getProjectLayout();
 
     // RC versions don't have a windows variant, so no [ext] is needed
     private static final String ARTIFACT_PATTERN_RC_VERSION =
@@ -41,9 +46,16 @@ public class DownloadGraalTask extends DefaultTask {
 
     private static final String FILENAME_PATTERN = "graalvm-ce-[javaVersion]-[version]-[arch].[ext]";
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> downloadBaseUrl = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
 
     public DownloadGraalTask() {
@@ -67,8 +79,7 @@ public class DownloadGraalTask extends DefaultTask {
 
     @OutputFile
     public final Provider<RegularFile> getArchive() {
-        return getProject()
-                .getLayout()
+        return getProjectLayout()
                 .file(getCacheSubdirectory()
                         .map(dir -> dir.resolve(javaVersion.get())
                                 .resolve(render(FILENAME_PATTERN))
