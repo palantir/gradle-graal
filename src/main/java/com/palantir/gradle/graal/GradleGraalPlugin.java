@@ -46,9 +46,11 @@ public class GradleGraalPlugin implements Plugin<Project> {
 
     static final String TASK_GROUP = "Graal";
 
+    @SuppressWarnings("for-rollout:TaskDependsOn")
     @Override
     public final void apply(Project project) {
         project.getPluginManager().apply(JavaPlugin.class);
+        @SuppressWarnings({"for-rollout:GradleTypesAsFields", "for-rollout:NonAbstractGradleType"})
         GraalExtension extension = project.getExtensions().create("graal", GraalExtension.class, project);
 
         Path cacheDir = Optional.ofNullable((String) project.findProperty("com.palantir.graal.cache.dir"))
@@ -67,6 +69,7 @@ public class GradleGraalPlugin implements Plugin<Project> {
                     task.setCacheDir(cacheDir);
                 });
 
+        @SuppressWarnings("for-rollout:TaskDependsOn")
         TaskProvider<ExtractGraalTask> extractGraal = project.getTasks()
                 .register("extractGraalTooling", ExtractGraalTask.class, task -> {
                     task.setGraalVersion(extension.getGraalVersion());

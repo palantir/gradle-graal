@@ -55,6 +55,7 @@ public abstract class SharedLibraryTask extends BaseGraalCompileTask {
     }
 
     private final class LogAction implements Action<Task> {
+        @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
         @Override
         public void execute(Task _task) {
             getLogger()

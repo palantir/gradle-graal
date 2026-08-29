@@ -45,11 +45,22 @@ public abstract class ExtractGraalTask extends DefaultTask {
     private static final Set<String> WINDOWS_CMD_BINARIES =
             new HashSet<>(Arrays.asList("native-image", "native-image-configure", "polyglot", "gu"));
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty inputArchive = getProject().getObjects().fileProperty();
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final DirectoryProperty outputDirectory = getProject().getObjects().directoryProperty();
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> graalDirectoryName =
             getProject().getObjects().property(String.class);
 
@@ -74,6 +85,7 @@ public abstract class ExtractGraalTask extends DefaultTask {
             throw new IllegalStateException("extract task requires graal.graalVersion to be defined.");
         }
 
+        @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
         Project project = getProject();
         File inputArchiveFile = inputArchive.get().getAsFile();
         Path versionedCacheDir = cacheDir.get().resolve(Paths.get(graalVersion.get(), javaVersion.get()));

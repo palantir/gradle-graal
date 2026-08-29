@@ -27,6 +27,7 @@ import org.gradle.api.tasks.Input;
  */
 public abstract class NativeImageTask extends BaseGraalCompileTask {
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> mainClass = getProject().getObjects().property(String.class);
 
     public NativeImageTask() {
@@ -68,6 +69,7 @@ public abstract class NativeImageTask extends BaseGraalCompileTask {
     }
 
     private final class LogAction implements Action<Task> {
+        @SuppressWarnings("for-rollout:IllegalMethodCalledDuringTaskExecution")
         @Override
         public void execute(Task _task) {
             getLogger()

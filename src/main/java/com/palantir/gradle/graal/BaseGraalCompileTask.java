@@ -43,15 +43,34 @@ import org.gradle.api.tasks.OutputFile;
 
 public abstract class BaseGraalCompileTask extends BetterExec {
 
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> outputName = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final ListProperty<String> options = getProject().getObjects().listProperty(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty outputFile = getProject().getObjects().fileProperty();
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> graalVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> javaVersion = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> windowsVsVarsPath = getProject().getObjects().property(String.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Configuration> classpath = getProject().getObjects().property(Configuration.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final RegularFileProperty jarFile = getProject().getObjects().fileProperty();
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<Path> cacheDir = getProject().getObjects().property(Path.class);
+
+    @SuppressWarnings("for-rollout:GradleTypesAsFields")
     private final Property<String> graalDirectoryName =
             getProject().getObjects().property(String.class);
 
