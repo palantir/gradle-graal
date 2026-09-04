@@ -21,10 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Input;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Runs GraalVM's native-image command with configured options and parameters.
  */
+@DisableCachingByDefault(because = "Not opting into build caching; explicit opt-out is required by Gradle 9.7")
 public abstract class NativeImageTask extends BaseGraalCompileTask {
 
     @SuppressWarnings("for-rollout:GradleTypesAsFields")

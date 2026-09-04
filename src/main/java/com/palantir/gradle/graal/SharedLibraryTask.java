@@ -18,10 +18,12 @@ package com.palantir.gradle.graal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Runs GraalVM's native-image command configured to produce a shared library.
  */
+@DisableCachingByDefault(because = "Not opting into build caching; explicit opt-out is required by Gradle 9.7")
 public abstract class SharedLibraryTask extends BaseGraalCompileTask {
 
     public SharedLibraryTask() {
