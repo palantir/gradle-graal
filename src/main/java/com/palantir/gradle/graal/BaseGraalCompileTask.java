@@ -176,7 +176,6 @@ public abstract class BaseGraalCompileTask extends BetterExec {
         String command = "call \"" + windowsVsVarsPath.get() + "\"";
         String cmdContent =
                 "@echo off\r\n" + command + outputRedirection + "\r\n" + "\"" + spec.executable() + "\"" + argsString;
-        @SuppressWarnings("for-rollout:deprecation")
         Path buildPath = getProject().getBuildDir().toPath();
         Path startCmd = buildPath.resolve("tmp").resolve("com.palantir.graal").resolve("native-image.cmd");
         try {
