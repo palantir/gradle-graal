@@ -36,8 +36,10 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.process.ExecOperations;
+import org.gradle.work.DisableCachingByDefault;
 
 /** Extracts GraalVM tooling from downloaded tgz archive using the system's tar command. */
+@DisableCachingByDefault(because = "Not opting into build caching; explicit opt-out is required by Gradle 9.7")
 public abstract class ExtractGraalTask extends DefaultTask {
     /**
      * These binaries get .cmd as their filename extension, instead of .cmd (on Windows).
