@@ -2,11 +2,11 @@
 
 com.fasterxml.jackson.core:jackson-annotations:2.22 (4 constraints: dd3c66c3)
 
-com.fasterxml.jackson.core:jackson-core:2.22.1 (2 constraints: f1292b13)
+com.fasterxml.jackson.core:jackson-core:2.22.3 (2 constraints: f529b113)
 
-com.fasterxml.jackson.core:jackson-databind:2.22.1 (1 constraints: 6b17a33d)
+com.fasterxml.jackson.core:jackson-databind:2.22.3 (1 constraints: 6d17a53d)
 
-com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.1 (1 constraints: 331b1247)
+com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.22.3 (1 constraints: 331b1247)
 
 com.fasterxml.woodstox:woodstox-core:7.2.0 (1 constraints: 3d174b26)
 
